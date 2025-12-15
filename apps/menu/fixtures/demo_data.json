@@ -1,0 +1,49 @@
+[
+  { "model": "menu.category", "pk": 1, "fields": { "title": "Напитки" } },
+  { "model": "menu.category", "pk": 2, "fields": { "title": "Еда" } },
+
+  { "model": "menu.subcategory", "pk": 1, "fields": { "title": "Кофе", "category": 1 } },
+  { "model": "menu.subcategory", "pk": 2, "fields": { "title": "Холодное", "category": 1 } },
+  { "model": "menu.subcategory", "pk": 3, "fields": { "title": "Выпечка", "category": 2 } },
+  { "model": "menu.subcategory", "pk": 4, "fields": { "title": "Завтрак", "category": 2 } },
+
+  { "model": "menu.product", "pk": 1, "fields": { "title": "Эспрессо", "price": 120, "description": "Крепкий кофе", "image": "products/espresso.jpg", "bonus_percent": 5.0, "subcategory": 1, "has_options": true, "is_active": true } },
+  { "model": "menu.product", "pk": 2, "fields": { "title": "Американо", "price": 150, "description": "Кофе с водой", "image": "products/americano.jpg", "bonus_percent": 5.0, "subcategory": 1, "has_options": true, "is_active": true } },
+  { "model": "menu.product", "pk": 3, "fields": { "title": "Капучино", "price": 180, "description": "Кофе с молоком", "image": "products/cappuccino.jpg", "bonus_percent": 5.0, "subcategory": 1, "has_options": true, "is_active": true } },
+  { "model": "menu.product", "pk": 4, "fields": { "title": "Латте", "price": 200, "description": "Кофе с большим количеством молока", "image": "products/latte.jpg", "bonus_percent": 5.0, "subcategory": 1, "has_options": true, "is_active": true } },
+  { "model": "menu.product", "pk": 5, "fields": { "title": "Мокка", "price": 220, "description": "Кофе с шоколадом", "image": "products/mocha.jpg", "bonus_percent": 5.0, "subcategory": 1, "has_options": true, "is_active": true } },
+
+  { "model": "menu.product", "pk": 6, "fields": { "title": "Мохито", "price": 250, "description": "Освежающий напиток с мятой", "image": "products/mojito.jpg", "bonus_percent": 5.0, "subcategory": 2, "has_options": false, "is_active": true } },
+  { "model": "menu.product", "pk": 7, "fields": { "title": "Лимонад", "price": 180, "description": "Лимонный напиток", "image": "products/lemonade.jpg", "bonus_percent": 5.0, "subcategory": 2, "has_options": false, "is_active": true } },
+  { "model": "menu.product", "pk": 8, "fields": { "title": "Фраппе", "price": 220, "description": "Холодный кофе", "image": "products/frappe.jpg", "bonus_percent": 5.0, "subcategory": 2, "has_options": false, "is_active": true } },
+  { "model": "menu.product", "pk": 9, "fields": { "title": "Милкшейк", "price": 200, "description": "Молочный коктейль", "image": "products/milkshake.jpg", "bonus_percent": 5.0, "subcategory": 2, "has_options": false, "is_active": true } },
+  { "model": "menu.product", "pk": 10, "fields": { "title": "Смузи", "price": 230, "description": "Фруктовый напиток", "image": "products/smoothie.jpg", "bonus_percent": 5.0, "subcategory": 2, "has_options": false, "is_active": true } },
+
+  { "model": "menu.product", "pk": 11, "fields": { "title": "Круассан", "price": 150, "description": "Слоёная выпечка", "image": "products/croissant.jpg", "bonus_percent": 5.0, "subcategory": 3, "has_options": false, "is_active": true } },
+  { "model": "menu.product", "pk": 12, "fields": { "title": "Пончик", "price": 120, "description": "Сладкая выпечка", "image": "products/donut.jpg", "bonus_percent": 5.0, "subcategory": 3, "has_options": false, "is_active": true } },
+  { "model": "menu.product", "pk": 13, "fields": { "title": "Маффин", "price": 130, "description": "Шоколадный маффин", "image": "products/muffin.jpg", "bonus_percent": 5.0, "subcategory": 3, "has_options": false, "is_active": true } },
+  { "model": "menu.product", "pk": 14, "fields": { "title": "Пирог с яблоками", "price": 200, "description": "Домашний пирог", "image": "products/apple_pie.jpg", "bonus_percent": 5.0, "subcategory": 3, "has_options": false, "is_active": true } },
+  { "model": "menu.product", "pk": 15, "fields": { "title": "Хачапури", "price": 250, "description": "Сырная выпечка", "image": "products/khachapuri.jpg", "bonus_percent": 5.0, "subcategory": 3, "has_options": false, "is_active": true } },
+
+  { "model": "menu.product", "pk": 16, "fields": { "title": "Омлет", "price": 180, "description": "Яичный омлет", "image": "products/omelette.jpg", "bonus_percent": 5.0, "subcategory": 4, "has_options": false, "is_active": true } },
+  { "model": "menu.product", "pk": 17, "fields": { "title": "Блины", "price": 150, "description": "Блины с медом", "image": "products/pancakes.jpg", "bonus_percent": 5.0, "subcategory": 4, "has_options": false, "is_active": true } },
+  { "model": "menu.product", "pk": 18, "fields": { "title": "Каша овсяная", "price": 120, "description": "Овсянка на молоке", "image": "products/oatmeal.jpg", "bonus_percent": 5.0, "subcategory": 4, "has_options": false, "is_active": true } },
+  { "model": "menu.product", "pk": 19, "fields": { "title": "Тост с авокадо", "price": 200, "description": "Хлеб, авокадо", "image": "products/avocado_toast.jpg", "bonus_percent": 5.0, "subcategory": 4, "has_options": false, "is_active": true } },
+  { "model": "menu.product", "pk": 20, "fields": { "title": "Йогурт с фруктами", "price": 170, "description": "Йогурт и фрукты", "image": "products/yogurt.jpg", "bonus_percent": 5.0, "subcategory": 4, "has_options": false, "is_active": true } },
+
+  { "model": "menu.optiontype", "pk": 1, "fields": { "title": "Объем" } },
+  { "model": "menu.optiontype", "pk": 2, "fields": { "title": "Вид молока" } },
+  { "model": "menu.optiontype", "pk": 3, "fields": { "title": "Уровень сладости" } },
+
+  { "model": "menu.optionvalue", "pk": 1, "fields": { "type": 1, "value": "200 мл" } },
+  { "model": "menu.optionvalue", "pk": 2, "fields": { "type": 1, "value": "300 мл" } },
+  { "model": "menu.optionvalue", "pk": 3, "fields": { "type": 1, "value": "400 мл" } },
+  { "model": "menu.optionvalue", "pk": 4, "fields": { "type": 2, "value": "Обычное" } },
+  { "model": "menu.optionvalue", "pk": 5, "fields": { "type": 2, "value": "Безлактозное" } },
+  { "model": "menu.optionvalue", "pk": 6, "fields": { "type": 2, "value": "Соевое" } },
+  { "model": "menu.optionvalue", "pk": 7, "fields": { "type": 2, "value": "Миндальное" } },
+  { "model": "menu.optionvalue", "pk": 8, "fields": { "type": 3, "value": "Без сахара" } },
+  { "model": "menu.optionvalue", "pk": 9, "fields": { "type": 3, "value": "Мало сахара" } },
+  { "model": "menu.optionvalue", "pk": 10, "fields": { "type": 3, "value": "Нормально" } },
+  { "model": "menu.optionvalue", "pk": 11, "fields": { "type": 3, "value": "Сладко" } }
+]
