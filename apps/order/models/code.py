@@ -1,6 +1,5 @@
 from django.db import models
 from django.contrib.auth import get_user_model
-from apps.menu.models.product import Product
 
 User = get_user_model()
 
@@ -30,13 +29,21 @@ class Order(models.Model):
     def __str__(self):
         return f"Order #{self.id} ({self.user.phone_number})"
 
+    class Meta:
+        app_label = "order"
+
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="items")
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)  # Продукт
+    product = models.ForeignKey(
+        "menu.Product", on_delete=models.CASCADE
+    )  # Use string reference to avoid circular import
     quantity = models.IntegerField(default=1)
     product_options = models.JSONField(default=dict, blank=True)  # Информация о выбранных опциях
     final_price = models.DecimalField(max_digits=10, decimal_places=2)  # Цена за всю позицию (кол-во * цена)
 
     def __str__(self):
         return f"{self.quantity} x {self.product.title} ({self.order.id})"
+
+    class Meta:
+        app_label = "order"

@@ -13,6 +13,8 @@ from datetime import timedelta
 from pathlib import Path
 from django.utils.translation import gettext_lazy as _
 
+import apps.order.apps
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -43,6 +45,7 @@ INSTALLED_APPS = [
     'apps.users.apps.UsersConfig',
     'apps.menu.apps.MenuConfig',
     'apps.cart.apps.CartConfig',
+    'apps.order.apps.OrderConfig',
 
     # django
     'django.contrib.admin',
