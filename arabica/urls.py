@@ -26,6 +26,8 @@ urlpatterns = [
     path('api/v1/menu/', include('apps.menu.api.urls')),
     path('api/v1/cart/', include('apps.cart.api.urls')),
     path('api/v1/bonus/', include('apps.bonus.api.urls')),
+    path("api/orders/", include("apps.order.api.urls")),
+
 ]
 
 swagger_urlpatterns = [
