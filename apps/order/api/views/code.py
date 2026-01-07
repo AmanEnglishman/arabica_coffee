@@ -96,7 +96,14 @@ class CreateOrderView(APIView):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
-@extend_schema(summary="Список заказов текущего пользователя", tags=["Order"])
+@extend_schema(
+    summary="Список заказов текущего пользователя",
+    tags=["Order"],
+    responses={
+        200: OrderSerializer(many=True),
+        400: OpenApiResponse(description="Неверный запрос"),
+    }
+)
 class OrderListView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -106,7 +113,14 @@ class OrderListView(APIView):
         return Response(serializer.data)
 
 
-@extend_schema(summary="Детали заказа", tags=["Order"])
+@extend_schema(
+    summary="Детали заказа",
+    tags=["Order"],
+    responses={
+        200: OrderSerializer,
+        404: OpenApiResponse(description="Заказ не найден"),
+    }
+)
 class OrderDetailView(APIView):
     permission_classes = [IsAuthenticated]
 

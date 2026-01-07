@@ -17,3 +17,4 @@ class ScanQRCodeSerializer(serializers.Serializer):
     qr_code_data = serializers.CharField()
 
 
+
