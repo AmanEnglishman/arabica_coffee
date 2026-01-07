@@ -4,9 +4,14 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.bonus.api.serializers import AddCoffeeCupSerializer, AddLoyaltyPointsSerializer
 from apps.users.models import User
 
-@extend_schema(summary='Добавление бонусных баллов', tags=["Courier"])
+@extend_schema(
+    summary='Добавление бонусных баллов',
+    tags=["Courier"],
+    request=AddLoyaltyPointsSerializer,
+)
 class AddLoyaltyPointsView(APIView):
     """
     Курьер начисляет бонусные баллы пользователю.
@@ -17,10 +22,10 @@ class AddLoyaltyPointsView(APIView):
         if not request.user.is_courier:
             return Response({"error": "Нет прав доступа."}, status=403)
 
-        user_id = request.data.get("user_id")
-        points = request.data.get("points")
-        if not user_id or not points or int(points) <= 0:
-            return Response({"error": "Некорректные данные."}, status=400)
+        serializer = AddLoyaltyPointsSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user_id = serializer.validated_data["user_id"]
+        points = serializer.validated_data["points"]
 
         user = get_object_or_404(User, id=user_id)
         user.loyalty_points += int(points)
@@ -31,7 +36,11 @@ class AddLoyaltyPointsView(APIView):
             "total_loyalty_points": user.loyalty_points
         })
 
-@extend_schema(summary='Добавление чашек кофе', tags=["Courier"])
+@extend_schema(
+    summary='Добавление чашек кофе',
+    tags=["Courier"],
+    request=AddCoffeeCupSerializer,
+)
 class AddCoffeeCupView(APIView):
     """
     Курьер добавляет чашку кофе пользователю.
@@ -42,9 +51,9 @@ class AddCoffeeCupView(APIView):
         if not request.user.is_courier:
             return Response({"error": "Нет прав доступа."}, status=403)
 
-        user_id = request.data.get("user_id")
-        if not user_id:
-            return Response({"error": "user_id обязателен."}, status=400)
+        serializer = AddCoffeeCupSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user_id = serializer.validated_data["user_id"]
 
         user = get_object_or_404(User, id=user_id)
         user.coffee_cups += 1

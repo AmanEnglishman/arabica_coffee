@@ -1,23 +1,26 @@
-from rest_framework.views import APIView
-from rest_framework.response import Response
+from drf_spectacular.utils import OpenApiResponse, extend_schema
+from django.core.cache import cache
+from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
-from django.shortcuts import get_object_or_404
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
 from apps.cart.models import Cart, CartItem
 from apps.cart.api.serializers.cart import (
+    AddCartItemRequestSerializer,
     CartSerializer,
     CartItemSerializer,
     CartItemOptionSerializer,
     OptionValueSerializer,
-
+    UpdateCartItemRequestSerializer,
 )
 from apps.cart.models.cart import CartItemOption
 from apps.menu.models import OptionValue
 from apps.menu.models.product import Product
 
-from django.core.cache import cache
 
-
+@extend_schema(summary="Текущая корзина", tags=["Cart"])
 class CartView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -41,18 +44,27 @@ class CartView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
+@extend_schema(
+    summary="Добавить товар в корзину",
+    tags=["Cart"],
+    request=AddCartItemRequestSerializer,
+    responses={
+        201: OpenApiResponse(description="Товар добавлен"),
+        400: OpenApiResponse(description="Ошибка данных или не найден продукт/опции"),
+    },
+)
 class AddCartItemView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
         """Добавить товар в корзину, включая опции."""
-        product_id = request.data.get("product_id")
-        quantity = request.data.get("quantity", 1)
-        options = request.data.get("options", [])  # Список IDs OptionValue
-        comment = request.data.get("comment", "")
+        serializer = AddCartItemRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
 
-        if not product_id:
-            return Response({"error": "Не указан ID продукта."}, status=status.HTTP_400_BAD_REQUEST)
+        product_id = serializer.validated_data.get("product_id")
+        quantity = serializer.validated_data.get("quantity", 1)
+        options = serializer.validated_data.get("options", [])
+        comment = serializer.validated_data.get("comment", "")
 
         try:
             product = Product.objects.get(id=product_id)
@@ -78,23 +90,30 @@ class AddCartItemView(APIView):
         except OptionValue.DoesNotExist:
             return Response({"error": "Одна или несколько указанных опций не найдены."}, status=status.HTTP_404_NOT_FOUND)
 
+@extend_schema(
+    summary="Обновить позицию в корзине",
+    tags=["Cart"],
+    request=UpdateCartItemRequestSerializer,
+    responses={
+        200: OpenApiResponse(description="Позиция обновлена"),
+        400: OpenApiResponse(description="Некорректные данные"),
+        404: OpenApiResponse(description="Позиция не найдена"),
+    },
+)
 class UpdateCartItemView(APIView):
     permission_classes = [IsAuthenticated]
 
     def put(self, request, pk):
         """Обновить количество и комментарий для позиции в корзине."""
+        serializer = UpdateCartItemRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
         try:
             cart, _ = Cart.objects.get_or_create(user=request.user)
             cart_item = get_object_or_404(CartItem, id=pk, cart=cart)
 
-            quantity = request.data.get("quantity", cart_item.quantity)
-            comment = request.data.get("comment", cart_item.comment)
-
-            if quantity < 1:
-                return Response(
-                    {"error": "Количество товара не может быть меньше одного."},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
+            quantity = serializer.validated_data.get("quantity", cart_item.quantity)
+            comment = serializer.validated_data.get("comment", cart_item.comment)
 
             # Обновляем данные
             cart_item.quantity = quantity
@@ -110,6 +129,14 @@ class UpdateCartItemView(APIView):
             return Response({"error": "Позиция в корзине не найдена."}, status=status.HTTP_404_NOT_FOUND)
 
 
+@extend_schema(
+    summary="Удалить позицию из корзины",
+    tags=["Cart"],
+    responses={
+        204: OpenApiResponse(description="Позиция удалена"),
+        404: OpenApiResponse(description="Позиция не найдена"),
+    },
+)
 class DeleteCartItemView(APIView):
     permission_classes = [IsAuthenticated]
 

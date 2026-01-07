@@ -1,2 +1,2 @@
-from .code import SendCodeSerializer
+from .code import SendCodeSerializer, VerifyCodeSerializer
 from .profile import UserProfileSerializer

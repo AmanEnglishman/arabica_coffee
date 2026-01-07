@@ -2,20 +2,36 @@ from decimal import Decimal, ROUND_DOWN
 
 from django.core.cache import cache
 from django.shortcuts import get_object_or_404
+from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.cart.models import Cart
-from apps.order.api.serializers.code import OrderSerializer
+from apps.order.api.serializers.code import (
+    OrderCreateSerializer,
+    OrderSerializer,
+)
 from apps.order.models.code import Order, OrderItem
 
 
+@extend_schema(
+    summary="Создать заказ из корзины",
+    tags=["Order"],
+    request=OrderCreateSerializer,
+    responses={
+        201: OrderSerializer,
+        400: OpenApiResponse(description="Пустая корзина или ошибка валидации."),
+    },
+)
 class CreateOrderView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
+        serializer = OrderCreateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
         user = request.user
 
         cart, _ = Cart.objects.get_or_create(user=user)
@@ -25,9 +41,9 @@ class CreateOrderView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        delivery_type = request.data.get("delivery_type", "pickup")
-        address = request.data.get("address")
-        delivery_time = request.data.get("delivery_time")
+        delivery_type = serializer.validated_data.get("delivery_type", "pickup")
+        address = serializer.validated_data.get("address")
+        delivery_time = serializer.validated_data.get("delivery_time")
 
         order = Order.objects.create(
             user=user,
@@ -80,6 +96,7 @@ class CreateOrderView(APIView):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
+@extend_schema(summary="Список заказов текущего пользователя", tags=["Order"])
 class OrderListView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -89,6 +106,7 @@ class OrderListView(APIView):
         return Response(serializer.data)
 
 
+@extend_schema(summary="Детали заказа", tags=["Order"])
 class OrderDetailView(APIView):
     permission_classes = [IsAuthenticated]
 

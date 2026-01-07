@@ -4,9 +4,14 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
 
+from apps.bonus.api.serializers import ScanQRCodeSerializer
 from apps.users.models import User
 
-@extend_schema(summary="Сканирование qr-code для курьера", tags=["Courier"])
+@extend_schema(
+    summary="Сканирование qr-code для курьера",
+    tags=["Courier"],
+    request=ScanQRCodeSerializer,
+)
 class ScanQRCodeView(APIView):
     """
     Курьер сканирует QR-код.
@@ -17,9 +22,9 @@ class ScanQRCodeView(APIView):
         if not request.user.is_courier:
             return Response({"error": "Нет прав доступа."}, status=403)
 
-        qr_code_data = request.data.get("qr_code_data")
-        if not qr_code_data:
-            return Response({"error": "QR-код не передан."}, status=400)
+        serializer = ScanQRCodeSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        qr_code_data = serializer.validated_data["qr_code_data"]
 
         user = get_object_or_404(User, qr_code=qr_code_data)
 
