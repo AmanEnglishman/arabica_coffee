@@ -3,6 +3,28 @@ from apps.cart.models import Cart, CartItem, CartItemOption
 from apps.menu.models.option import OptionValue
 
 
+class AddCartItemRequestSerializer(serializers.Serializer):
+    """Payload for adding item to cart."""
+
+    product_id = serializers.IntegerField()
+    quantity = serializers.IntegerField(min_value=1, default=1)
+    options = serializers.ListField(
+        child=serializers.IntegerField(), required=False, allow_empty=True, default=list
+    )
+    comment = serializers.CharField(
+        required=False, allow_blank=True, allow_null=True, max_length=500
+    )
+
+
+class UpdateCartItemRequestSerializer(serializers.Serializer):
+    """Payload for updating cart item."""
+
+    quantity = serializers.IntegerField(min_value=1, required=False)
+    comment = serializers.CharField(
+        required=False, allow_blank=True, allow_null=True, max_length=500
+    )
+
+
 class OptionValueSerializer(serializers.ModelSerializer):
     """Сериализация значений опций."""
     class Meta:

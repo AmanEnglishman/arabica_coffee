@@ -3,10 +3,10 @@ from django.contrib.auth import get_user_model
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from apps.users.api.serializers import SendCodeSerializer
+from apps.users.api.serializers import SendCodeSerializer, VerifyCodeSerializer
 
 User = get_user_model()
 
@@ -14,6 +14,8 @@ User = get_user_model()
 @extend_schema(
     summary="Send code to phone number",
     tags=["Authentication"],
+    request=SendCodeSerializer,
+    responses={200: OpenApiResponse(description="Код отправлен"), 400: SendCodeSerializer},
 )
 class SendCodeView(APIView):
     def post(self, request, *args, **kwargs):
@@ -46,17 +48,15 @@ class SendCodeView(APIView):
 @extend_schema(
     summary="Verify code for phone number",
     tags=["Authentication"],
+    request=VerifyCodeSerializer,
+    responses={200: OpenApiResponse(description="Код подтвержден"), 400: OpenApiResponse(description="Ошибка проверки")},
 )
 class VerifyCodeView(APIView):
     def post(self, request, *args, **kwargs):
-        phone_number = request.data.get("phone_number")
-        code = request.data.get("code")
-
-        if not phone_number or not code:
-            return Response(
-                {"success": False, "message": "Номер телефона и код обязательны"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        serializer = VerifyCodeSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        phone_number = serializer.validated_data["phone_number"]
+        code = serializer.validated_data["code"]
 
         # Достаём код из Redis
         stored_code = cache.get(f"verify_code:{phone_number}")

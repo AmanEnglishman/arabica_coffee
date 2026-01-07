@@ -12,3 +12,8 @@ class SendCodeSerializer(serializers.Serializer):
         if not value.isdigit() or len(value) < 10:
             raise serializers.ValidationError("Неверный формат номера телефона.")
         return value
+
+
+class VerifyCodeSerializer(serializers.Serializer):
+    phone_number = serializers.CharField(max_length=15)
+    code = serializers.CharField(max_length=10)
