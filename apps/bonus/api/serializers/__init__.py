@@ -18,3 +18,5 @@ class ScanQRCodeSerializer(serializers.Serializer):
 
 
 
+
+
