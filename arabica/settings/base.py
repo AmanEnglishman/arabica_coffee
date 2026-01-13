@@ -17,6 +17,8 @@ INSTALLED_APPS = [
     'apps.menu.apps.MenuConfig',
     'apps.cart.apps.CartConfig',
     'apps.order.apps.OrderConfig',
+    'apps.news.apps.NewsConfig',
+    'apps.promotions.apps.PromotionsConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',

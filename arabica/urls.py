@@ -26,7 +26,10 @@ urlpatterns = [
     path('api/v1/menu/', include('apps.menu.api.urls')),
     path('api/v1/cart/', include('apps.cart.api.urls')),
     path('api/v1/bonus/', include('apps.bonus.api.urls')),
-    path("api/orders/", include("apps.order.api.urls")),
+    path("api/v1/orders/", include("apps.order.api.urls")),
+    path("api/v1/news/", include("apps.news.api.urls")),
+    path("api/v1/promotions/", include("apps.promotions.api.urls")),
+
 
 ]
 
