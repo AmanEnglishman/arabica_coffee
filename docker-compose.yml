@@ -21,6 +21,7 @@ services:
   django:
     build: .
     container_name: arabica-back
+    working_dir: /src
     volumes:
       - .:/src
       - static_volume:/static
