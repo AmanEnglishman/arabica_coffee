@@ -11,7 +11,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'arabica_db',
         'USER': 'arabica_user',
-        'PASSWORD': 'secure-password',
+        'PASSWORD': 'arabica',
         'HOST': 'db',
         'PORT': '5432',
     }
