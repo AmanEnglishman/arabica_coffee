@@ -199,7 +199,7 @@ SIMPLE_JWT = {
 # В settings.py
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.redis.RedisCache',  # для Redis
+        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
         'LOCATION': 'redis://redis:6379/1',
     }
 }
