@@ -1,0 +1,109 @@
+{
+  "categories": [
+    {
+      "title": "Напитки",
+      "subcategories": [
+        {
+          "title": "Кофе",
+          "products": [
+            {
+              "title": "Эспрессо",
+              "price": 120,
+              "description": "Крепкий кофе",
+              "bonus_percent": 5.0,
+              "has_options": true,
+              "option_type_titles": ["Объем", "Вид молока", "Уровень сладости"]
+            },
+            {
+              "title": "Американо",
+              "price": 150,
+              "description": "Кофе с водой",
+              "bonus_percent": 5.0,
+              "has_options": true,
+              "option_type_titles": ["Объем", "Вид молока", "Уровень сладости"]
+            },
+            {
+              "title": "Капучино",
+              "price": 180,
+              "description": "Кофе с молоком",
+              "bonus_percent": 5.0,
+              "has_options": true,
+              "option_type_titles": ["Объем", "Вид молока", "Уровень сладости"]
+            }
+          ]
+        },
+        {
+          "title": "Холодное",
+          "products": [
+            {
+              "title": "Мохито",
+              "price": 250,
+              "description": "Освежающий напиток с мятой",
+              "bonus_percent": 5.0,
+              "has_options": false
+            },
+            {
+              "title": "Лимонад",
+              "price": 180,
+              "description": "Лимонный напиток",
+              "bonus_percent": 5.0,
+              "has_options": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Еда",
+      "subcategories": [
+        {
+          "title": "Выпечка",
+          "products": [
+            {
+              "title": "Круассан",
+              "price": 150,
+              "description": "Слоёная выпечка",
+              "bonus_percent": 5.0,
+              "has_options": false
+            },
+            {
+              "title": "Пончик",
+              "price": 120,
+              "description": "Сладкая выпечка",
+              "bonus_percent": 5.0,
+              "has_options": false
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "option_types": [
+    {
+      "title": "Объем",
+      "values": [
+        {"value": "200 мл", "additional_cost": 0},
+        {"value": "300 мл", "additional_cost": 20},
+        {"value": "400 мл", "additional_cost": 40}
+      ]
+    },
+    {
+      "title": "Вид молока",
+      "values": [
+        {"value": "Обычное", "additional_cost": 0},
+        {"value": "Безлактозное", "additional_cost": 30},
+        {"value": "Соевое", "additional_cost": 25},
+        {"value": "Миндальное", "additional_cost": 35}
+      ]
+    },
+    {
+      "title": "Уровень сладости",
+      "values": [
+        {"value": "Без сахара", "additional_cost": 0},
+        {"value": "Мало сахара", "additional_cost": 0},
+        {"value": "Нормально", "additional_cost": 0},
+        {"value": "Сладко", "additional_cost": 0}
+      ]
+    }
+  ]
+}
