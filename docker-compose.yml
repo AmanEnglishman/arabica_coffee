@@ -22,6 +22,8 @@ services:
     build: .
     container_name: arabica-back
     working_dir: /src
+    environment:
+      - DJANGO_ENV=production
     volumes:
       - .:/src
       - static_volume:/static
