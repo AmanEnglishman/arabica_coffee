@@ -24,10 +24,11 @@ CACHES = {
     }
 }
 
-CSRF_TRUSTED_ORIGINS = [
+# Расширяем CSRF_TRUSTED_ORIGINS из base.py
+CSRF_TRUSTED_ORIGINS = CSRF_TRUSTED_ORIGINS + [
     "http://77.95.206.95:8001",
     "http://77.95.206.95",
-    "http://localhost",
-    "http://localhost:8000",
-    "http://localhost:8001",
+    "http://62.72.33.230:8001",
+    "http://62.72.33.230",
+    "http://13.49.241.188",
 ]
