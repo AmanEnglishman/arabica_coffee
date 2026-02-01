@@ -23,3 +23,11 @@ CACHES = {
         'LOCATION': 'redis://redis:6379/1',
     }
 }
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://77.95.206.95:8001",
+    "http://77.95.206.95",
+    "http://localhost",
+    "http://localhost:8000",
+    "http://localhost:8001",
+]

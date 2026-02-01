@@ -223,7 +223,9 @@ CSRF_TRUSTED_ORIGINS = ["http://localhost",
                         "http://localhost:8000",
                         "http://localhost:5173",
                         'http://13.49.241.188',
-                        'http://62.72.33.230']
+                        'http://62.72.33.230',
+                        'http://77.95.206.95:8001',
+                        'http://77.95.206.95']
 
 CORS_ALLOW_METHODS = (
     "DELETE",
