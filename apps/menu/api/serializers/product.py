@@ -31,6 +31,7 @@ class ProductSerializer(serializers.ModelSerializer):
         many=True,
         read_only=True,
     )
+    image = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
@@ -43,9 +44,27 @@ class ProductSerializer(serializers.ModelSerializer):
             "has_options",
             "option_types",
         )
+    
+    def get_image(self, obj):
+        if obj.image:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.image.url)
+            return obj.image.url
+        return None
 
 
 class ProductSearchSerializers(serializers.ModelSerializer):
+    image = serializers.SerializerMethodField()
+    
     class Meta:
         model = Product
         fields = ("id", "title", "price", "image")
+    
+    def get_image(self, obj):
+        if obj.image:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.image.url)
+            return obj.image.url
+        return None

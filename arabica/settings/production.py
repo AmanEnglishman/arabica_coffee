@@ -37,3 +37,8 @@ CSRF_TRUSTED_ORIGINS = [
     "http://localhost:3000",
     "http://localhost:5173",
 ]
+
+# Настройки для правильного формирования абсолютных URL через прокси
+USE_X_FORWARDED_HOST = True
+USE_X_FORWARDED_PORT = True
+SECURE_PROXY_SSL_HEADER = None  # Если не используете HTTPS
