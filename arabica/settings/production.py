@@ -42,3 +42,6 @@ CSRF_TRUSTED_ORIGINS = [
 USE_X_FORWARDED_HOST = True
 USE_X_FORWARDED_PORT = True
 SECURE_PROXY_SSL_HEADER = None  # Если не используете HTTPS
+
+# В production используем volume для медиа файлов
+MEDIA_ROOT = '/media'
