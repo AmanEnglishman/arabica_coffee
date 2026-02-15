@@ -7,22 +7,19 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.cart.models import Cart, CartItem, CartItemOption
-from apps.menu.models import Product, OptionValue
-from apps.order.models.code import Order, OrderItem
-from apps.order.api.serializers.reorder import ReorderSerializer
+from apps.menu.models import OptionValue
+from apps.order.models.code import Order
 from apps.cart.api.serializers.cart import CartSerializer
 
 
 @extend_schema(
     summary="Повторить заказ - добавить товары из заказа в корзину",
     tags=["Order"],
-    request=ReorderSerializer,
     responses={
         200: OpenApiResponse(
             description="Товары из заказа успешно добавлены в корзину",
             response=CartSerializer
         ),
-        400: OpenApiResponse(description="Ошибка валидации"),
         403: OpenApiResponse(description="Нет прав доступа"),
         404: OpenApiResponse(description="Заказ не найден"),
     }
@@ -32,19 +29,6 @@ class ReorderView(APIView):
     API endpoint для повторного заказа.
     
     Добавляет все товары из указанного заказа в корзину пользователя.
-    Также позволяет добавить дополнительные товары.
-    
-    Пример запроса:
-    {
-        "additional_items": [
-            {
-                "product_id": 5,
-                "quantity": 2,
-                "options": [1, 2],
-                "comment": "Дополнительный комментарий"
-            }
-        ]
-    }
     """
     permission_classes = [IsAuthenticated]
 
@@ -58,11 +42,6 @@ class ReorderView(APIView):
         # Получаем заказ (только заказы текущего пользователя)
         order = get_object_or_404(Order, id=order_id, user=request.user)
         
-        # Валидируем дополнительные товары, если они указаны
-        serializer = ReorderSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        additional_items = serializer.validated_data.get('additional_items', [])
-        
         # Получаем или создаем корзину пользователя
         cart, _ = Cart.objects.get_or_create(user=request.user)
         
@@ -72,7 +51,7 @@ class ReorderView(APIView):
         # Добавляем товары из заказа в корзину
         for order_item in order.items.all():
             try:
-                # Проверяем, существует ли продукт
+                # Проверяем, существует ли продукт и активен ли он
                 if not order_item.product.is_active:
                     errors.append(f"Продукт '{order_item.product.title}' больше не доступен")
                     continue
@@ -111,44 +90,6 @@ class ReorderView(APIView):
                 
             except Exception as e:
                 errors.append(f"Ошибка при добавлении '{order_item.product.title}': {str(e)}")
-        
-        # Добавляем дополнительные товары, если они указаны
-        for item_data in additional_items:
-            try:
-                product_id = item_data.get('product_id')
-                quantity = item_data.get('quantity', 1)
-                options = item_data.get('options', []) or []
-                comment = item_data.get('comment', '') or ''
-                
-                product = Product.objects.get(id=product_id, is_active=True)
-                
-                cart_item = CartItem.objects.create(
-                    cart=cart,
-                    product=product,
-                    quantity=quantity,
-                    comment=comment
-                )
-                
-                # Добавляем опции
-                for option_id in options:
-                    try:
-                        option_value = OptionValue.objects.get(id=option_id)
-                        CartItemOption.objects.create(
-                            cart_item=cart_item,
-                            option_value=option_value
-                        )
-                    except OptionValue.DoesNotExist:
-                        errors.append(f"Опция с ID {option_id} не найдена")
-                
-                added_items.append({
-                    "product": product.title,
-                    "quantity": quantity
-                })
-                
-            except Product.DoesNotExist:
-                errors.append(f"Продукт с ID {item_data.get('product_id')} не найден")
-            except Exception as e:
-                errors.append(f"Ошибка при добавлении дополнительного товара: {str(e)}")
         
         # Очищаем кэш корзины
         cache.delete(f"user_cart_{request.user.id}")

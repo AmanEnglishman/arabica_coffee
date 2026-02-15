@@ -33,7 +33,7 @@ if env is None:
     # Если .env не найден ни в одном месте, пробуем стандартный способ
     if env == 'local':
         try:
-            env = config('DJANGO_ENV', default='local')
+env = config('DJANGO_ENV', default='local')
         except Exception:
             pass
 
