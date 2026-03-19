@@ -7,6 +7,7 @@ from django.shortcuts import get_object_or_404
 from apps.bonus.api.serializers import ScanQRCodeSerializer
 from apps.bonus.api.serializers.qr_scan import ScanQRCodeResponseSerializer
 from apps.users.models import User
+from arabica.api_utils import api_error
 
 @extend_schema(
     summary="Сканирование qr-code для курьера",
@@ -27,7 +28,11 @@ class ScanQRCodeView(APIView):
 
     def post(self, request):
         if not request.user.is_courier:
-            return Response({"error": "Нет прав доступа."}, status=403)
+            return api_error(
+                code="forbidden",
+                message="Нет прав доступа.",
+                status_code=403,
+            )
 
         serializer = ScanQRCodeSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)

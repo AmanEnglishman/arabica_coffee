@@ -1,6 +1,7 @@
 from decimal import Decimal, ROUND_DOWN
 
 from django.core.cache import cache
+from django.db import transaction
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, extend_schema
 from rest_framework import status
@@ -15,6 +16,8 @@ from apps.order.api.serializers.code import (
     OrderSerializer,
 )
 from apps.order.models.code import Order, OrderItem
+from apps.order.models import Cafe
+from arabica.api_utils import api_error
 
 
 @extend_schema(
@@ -34,67 +37,72 @@ class CreateOrderView(APIView):
         serializer.is_valid(raise_exception=True)
 
         user = request.user
+        cafe_id = serializer.validated_data["cafe_id"]
+        cafe = get_object_or_404(Cafe, id=cafe_id, is_active=True)
 
         cart, _ = Cart.objects.get_or_create(user=user)
         if not cart.items.exists():
-            return Response(
-                {"error": "Корзина пуста"},
-                status=status.HTTP_400_BAD_REQUEST,
+            return api_error(
+                code="cart_empty",
+                message="Корзина пуста.",
+                status_code=status.HTTP_400_BAD_REQUEST,
             )
 
         delivery_type = serializer.validated_data.get("delivery_type", "pickup")
         address = serializer.validated_data.get("address")
         delivery_time = serializer.validated_data.get("delivery_time")
 
-        order = Order.objects.create(
-            user=user,
-            delivery_type=delivery_type,
-            address=address,
-            delivery_time=delivery_time,
-            total_price=Decimal("0.00"),
-        )
-
-        total_price = Decimal("0.00")
-        bonus_total = Decimal("0.00")
-
-        # Add items from cart to order
-        for cart_item in cart.items.all():
-            item_price = Decimal(cart_item.get_total_price())
-
-            options = [
-                {"id": opt.option_value.id, "value": str(opt.option_value)}
-                for opt in cart_item.options.all()
-            ]
-
-            OrderItem.objects.create(
-                order=order,
-                product=cart_item.product,
-                quantity=cart_item.quantity,
-                product_options={"options": options},
-                final_price=item_price,
+        with transaction.atomic():
+            order = Order.objects.create(
+                user=user,
+                cafe=cafe,
+                delivery_type=delivery_type,
+                address=address,
+                delivery_time=delivery_time,
+                total_price=Decimal("0.00"),
             )
 
-            total_price += item_price
+            total_price = Decimal("0.00")
+            bonus_total = Decimal("0.00")
 
-            bonus_percent = Decimal(str(cart_item.product.bonus_percent or 0))
-            bonus_for_item = (item_price * bonus_percent) / Decimal("100")
-            bonus_total += bonus_for_item
+            # Add items from cart to order
+            for cart_item in cart.items.all():
+                item_price = Decimal(cart_item.get_total_price())
 
-        order.total_price = total_price
-        order.save()
+                options = [
+                    {"id": opt.option_value.id, "value": str(opt.option_value)}
+                    for opt in cart_item.options.all()
+                ]
 
-        if bonus_total > 0:
-            user.loyalty_points += int(
-                bonus_total.quantize(Decimal("1"), rounding=ROUND_DOWN)
-            )
-            user.save(update_fields=["loyalty_points"])
+                OrderItem.objects.create(
+                    order=order,
+                    product=cart_item.product,
+                    quantity=cart_item.quantity,
+                    product_options={"options": options},
+                    final_price=item_price,
+                )
 
-        # Clear user's cart and cache
-        cart.items.all().delete()
-        cache.delete(f"user_cart_{user.id}")
+                total_price += item_price
 
-        serializer = OrderSerializer(order)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+                bonus_percent = Decimal(str(cart_item.product.bonus_percent or 0))
+                bonus_for_item = (item_price * bonus_percent) / Decimal("100")
+                bonus_total += bonus_for_item
+
+            order.total_price = total_price
+            order.save()
+
+            if bonus_total > 0:
+                user.loyalty_points += int(
+                    bonus_total.quantize(Decimal("1"), rounding=ROUND_DOWN)
+                )
+                user.save(update_fields=["loyalty_points"])
+
+            # Clear user's cart and cache
+            cart.items.all().delete()
+            cache.delete(f"user_cart_{user.id}")
+
+            serializer = OrderSerializer(order)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 @extend_schema(

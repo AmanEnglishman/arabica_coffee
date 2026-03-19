@@ -7,6 +7,7 @@ from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from apps.users.api.serializers import SendCodeSerializer, VerifyCodeSerializer
+from arabica.api_utils import api_error
 
 User = get_user_model()
 
@@ -22,7 +23,12 @@ class SendCodeView(APIView):
         serializer = SendCodeSerializer(data=request.data)
 
         if not serializer.is_valid():
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return api_error(
+                code="validation_error",
+                message="Ошибка валидации.",
+                status_code=status.HTTP_400_BAD_REQUEST,
+                details=serializer.errors,
+            )
 
         phone_number = serializer.validated_data["phone_number"]
 
@@ -62,17 +68,19 @@ class VerifyCodeView(APIView):
         stored_code = cache.get(f"verify_code:{phone_number}")
 
         if not stored_code or stored_code != code:
-            return Response(
-                {"success": False, "message": "Неверный или просроченный код"},
-                status=status.HTTP_400_BAD_REQUEST,
+            return api_error(
+                code="invalid_code",
+                message="Неверный или просроченный код.",
+                status_code=status.HTTP_400_BAD_REQUEST,
             )
 
         try:
             user = User.objects.get(phone_number=phone_number)
         except User.DoesNotExist:
-            return Response(
-                {"success": False, "message": "Пользователь не найден"},
-                status=status.HTTP_404_NOT_FOUND,
+            return api_error(
+                code="user_not_found",
+                message="Пользователь не найден.",
+                status_code=status.HTTP_404_NOT_FOUND,
             )
 
         # Генерация токенов

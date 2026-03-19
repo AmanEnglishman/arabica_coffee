@@ -10,6 +10,7 @@ from apps.bonus.api.serializers import (
 )
 from apps.bonus.api.serializers.loyalty import AddLoyaltyPointsResponseSerializer, AddCoffeeCupResponseSerializer
 from apps.users.models import User
+from arabica.api_utils import api_error
 
 @extend_schema(
     summary='Добавление бонусных баллов',
@@ -33,7 +34,11 @@ class AddLoyaltyPointsView(APIView):
 
     def post(self, request):
         if not request.user.is_courier:
-            return Response({"error": "Нет прав доступа."}, status=403)
+            return api_error(
+                code="forbidden",
+                message="Нет прав доступа.",
+                status_code=403,
+            )
 
         serializer = AddLoyaltyPointsSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -74,7 +79,11 @@ class AddCoffeeCupView(APIView):
 
     def post(self, request):
         if not request.user.is_courier:
-            return Response({"error": "Нет прав доступа."}, status=403)
+            return api_error(
+                code="forbidden",
+                message="Нет прав доступа.",
+                status_code=403,
+            )
 
         serializer = AddCoffeeCupSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)

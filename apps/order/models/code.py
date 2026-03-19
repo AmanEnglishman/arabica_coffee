@@ -18,16 +18,33 @@ class Order(models.Model):
     ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="orders")
+    cafe = models.ForeignKey(
+        "order.Cafe",
+        on_delete=models.PROTECT,
+        related_name="orders",
+        null=True,
+        blank=True,
+    )
+    courier = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        related_name="courier_orders",
+        null=True,
+        blank=True,
+    )
     status = models.CharField(max_length=20, choices=ORDER_STATUS, default="accepted")
     delivery_type = models.CharField(max_length=10, choices=DELIVERY_TYPE_CHOICES)
     address = models.TextField(blank=True, null=True)  # Только для доставки
     delivery_time = models.TimeField(blank=True, null=True)  # Время доставки
     total_price = models.DecimalField(max_digits=10, decimal_places=2)  # Итоговая цена
     created_at = models.DateTimeField(auto_now_add=True)
+    ready_at = models.DateTimeField(blank=True, null=True)
+    on_the_way_at = models.DateTimeField(blank=True, null=True)
+    delivered_at = models.DateTimeField(blank=True, null=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"Order #{self.id} ({self.user.phone_number})"
+        return f"Order #{self.id} ({self.user.phone_number}, cafe={self.cafe_id})"
 
     class Meta:
         app_label = "order"

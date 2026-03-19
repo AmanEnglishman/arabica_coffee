@@ -6,6 +6,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from arabica.api_utils import api_error
+
 from apps.cart.models import Cart, CartItem
 from apps.cart.api.serializers.cart import (
     AddCartItemRequestSerializer,
@@ -90,9 +92,17 @@ class AddCartItemView(APIView):
             return Response(response_serializer.data, status=status.HTTP_201_CREATED)
 
         except Product.DoesNotExist:
-            return Response({"error": "Продукт с указанным ID не найден."}, status=status.HTTP_404_NOT_FOUND)
+            return api_error(
+                code="product_not_found",
+                message="Продукт с указанным ID не найден.",
+                status_code=status.HTTP_404_NOT_FOUND,
+            )
         except OptionValue.DoesNotExist:
-            return Response({"error": "Одна или несколько указанных опций не найдены."}, status=status.HTTP_404_NOT_FOUND)
+            return api_error(
+                code="option_not_found",
+                message="Одна или несколько указанных опций не найдены.",
+                status_code=status.HTTP_404_NOT_FOUND,
+            )
 
 
 @extend_schema(
