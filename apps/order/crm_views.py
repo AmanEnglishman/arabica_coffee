@@ -64,16 +64,37 @@ def crm_order_action_view(request, order_id, action):
     order = get_object_or_404(Order, id=order_id, cafe=membership.cafe)
 
     if action == "mark-ready":
+        if order.status == "ready":
+            return _orders_payload(membership.cafe)
         if order.status != "accepted":
-            return JsonResponse({"detail": "Заказ нельзя отметить готовым."}, status=400)
+            return JsonResponse(
+                {
+                    "detail": (
+                        "Заказ нельзя отметить готовым. "
+                        f"Текущий статус: {order.get_status_display()}."
+                    )
+                },
+                status=400,
+            )
         order.status = "ready"
         order.ready_at = timezone.now()
         order.save(update_fields=["status", "ready_at", "updated_at"])
         return _orders_payload(membership.cafe)
 
     if action == "mark-delivered":
+        if order.status == "delivered":
+            return _orders_payload(membership.cafe)
         if order.status != "ready" or order.delivery_type != "pickup":
-            return JsonResponse({"detail": "Заказ нельзя выдать."}, status=400)
+            return JsonResponse(
+                {
+                    "detail": (
+                        "Заказ нельзя выдать. "
+                        f"Статус: {order.get_status_display()}, "
+                        f"тип: {order.get_delivery_type_display()}."
+                    )
+                },
+                status=400,
+            )
         order.status = "delivered"
         order.delivered_at = timezone.now()
         order.save(update_fields=["status", "delivered_at", "updated_at"])

@@ -531,8 +531,10 @@
       try {
         const response = await fetch(`/crm/orders/${orderId}/${action}/`, {
           method: "POST",
+          credentials: "same-origin",
           headers: {
             "X-CSRFToken": csrfToken,
+            "X-Requested-With": "XMLHttpRequest",
           },
           body,
         });
@@ -546,6 +548,8 @@
         if (Array.isArray(payload.orders)) {
           state.orders = payload.orders;
           render();
+        } else {
+          window.location.reload();
         }
       } catch (error) {
         showToast("Нет связи с сервером.");
