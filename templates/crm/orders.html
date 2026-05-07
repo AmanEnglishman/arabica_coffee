@@ -424,11 +424,11 @@
 
     function renderActions(order) {
       if (order.status === "accepted") {
-        return `<button class="btn" data-action="mark-ready" data-order="${order.id}">Готов</button>`;
+        return `<button type="button" class="btn" data-action="mark-ready" data-order="${order.id}">Готов</button>`;
       }
 
       if (order.status === "ready" && order.delivery_type === "pickup") {
-        return `<button class="btn" data-action="mark-delivered" data-order="${order.id}">Выдан</button>`;
+        return `<button type="button" class="btn" data-action="mark-delivered" data-order="${order.id}">Выдан</button>`;
       }
 
       if (order.status === "ready" && order.delivery_type === "delivery") {
@@ -442,7 +442,7 @@
               <option value="">Курьер</option>
               ${options}
             </select>
-            <button class="btn" data-action="assign-courier" data-order="${order.id}">В путь</button>
+            <button type="button" class="btn" data-action="assign-courier" data-order="${order.id}">В путь</button>
           </div>
         `;
       }
@@ -563,6 +563,8 @@
       if (!button) {
         return;
       }
+      event.preventDefault();
+      event.stopPropagation();
       postAction(button, button.dataset.order, button.dataset.action);
     });
 

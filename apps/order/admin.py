@@ -23,6 +23,11 @@ class OrderAdmin(admin.ModelAdmin):
     inlines = [OrderItemInline]
     readonly_fields = ("total_price", "created_at", "updated_at")
 
+    def get_readonly_fields(self, request, obj=None):
+        if obj is None:
+            return ("created_at", "updated_at")
+        return self.readonly_fields
+
 
 @admin.register(Cafe)
 class CafeAdmin(admin.ModelAdmin):
