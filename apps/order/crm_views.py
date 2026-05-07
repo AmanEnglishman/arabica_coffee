@@ -20,6 +20,16 @@ def _staff_membership_or_error(request):
     return membership, None
 
 
+def _orders_payload(cafe):
+    return JsonResponse(
+        {
+            "ok": True,
+            "orders": serialize_active_orders(cafe),
+            "active_count": get_active_orders(cafe).count(),
+        }
+    )
+
+
 @login_required(login_url="/admin/login/")
 def crm_orders_view(request):
     membership = get_staff_membership(request.user)
@@ -59,7 +69,7 @@ def crm_order_action_view(request, order_id, action):
         order.status = "ready"
         order.ready_at = timezone.now()
         order.save(update_fields=["status", "ready_at", "updated_at"])
-        return JsonResponse({"ok": True})
+        return _orders_payload(membership.cafe)
 
     if action == "mark-delivered":
         if order.status != "ready" or order.delivery_type != "pickup":
@@ -67,7 +77,7 @@ def crm_order_action_view(request, order_id, action):
         order.status = "delivered"
         order.delivered_at = timezone.now()
         order.save(update_fields=["status", "delivered_at", "updated_at"])
-        return JsonResponse({"ok": True})
+        return _orders_payload(membership.cafe)
 
     if action == "assign-courier":
         courier_id = request.POST.get("courier_id")
@@ -83,6 +93,6 @@ def crm_order_action_view(request, order_id, action):
         order.status = "on_the_way"
         order.on_the_way_at = timezone.now()
         order.save(update_fields=["courier", "status", "on_the_way_at", "updated_at"])
-        return JsonResponse({"ok": True})
+        return _orders_payload(membership.cafe)
 
     return JsonResponse({"detail": "Неизвестное действие."}, status=404)

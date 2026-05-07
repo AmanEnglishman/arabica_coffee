@@ -516,7 +516,7 @@
       totalCount.textContent = `${state.orders.length} активных`;
     }
 
-    async function postAction(orderId, action) {
+    async function postAction(button, orderId, action) {
       const body = new FormData();
       if (action === "assign-courier") {
         const select = document.querySelector(`[data-courier="${orderId}"]`);
@@ -527,17 +527,30 @@
         body.append("courier_id", select.value);
       }
 
-      const response = await fetch(`/crm/orders/${orderId}/${action}/`, {
-        method: "POST",
-        headers: {
-          "X-CSRFToken": csrfToken,
-        },
-        body,
-      });
-
-      if (!response.ok) {
+      button.disabled = true;
+      try {
+        const response = await fetch(`/crm/orders/${orderId}/${action}/`, {
+          method: "POST",
+          headers: {
+            "X-CSRFToken": csrfToken,
+          },
+          body,
+        });
         const payload = await response.json().catch(() => ({}));
-        showToast(payload.detail || "Действие не выполнено.");
+
+        if (!response.ok) {
+          showToast(payload.detail || "Действие не выполнено.");
+          return;
+        }
+
+        if (Array.isArray(payload.orders)) {
+          state.orders = payload.orders;
+          render();
+        }
+      } catch (error) {
+        showToast("Нет связи с сервером.");
+      } finally {
+        button.disabled = false;
       }
     }
 
@@ -546,7 +559,7 @@
       if (!button) {
         return;
       }
-      postAction(button.dataset.order, button.dataset.action);
+      postAction(button, button.dataset.order, button.dataset.action);
     });
 
     function connectSocket() {
