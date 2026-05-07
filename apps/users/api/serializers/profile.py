@@ -19,4 +19,11 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "is_phone_verified",
             "phone_verified_at",
         )
-        read_only_fields = ("is_phone_verified", "phone_verified_at")
+        read_only_fields = (
+            "id",
+            "phone_number",
+            "loyalty_points",
+            "coffee_cups",
+            "is_phone_verified",
+            "phone_verified_at",
+        )

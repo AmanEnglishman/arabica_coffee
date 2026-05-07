@@ -21,5 +21,5 @@ COPY . /src/
 # Collect static files
 RUN python manage.py collectstatic --noinput
 
-# Run gunicorn
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "arabica.wsgi:application"]
+# Run ASGI server
+CMD ["daphne", "-b", "0.0.0.0", "-p", "8000", "arabica.asgi:application"]

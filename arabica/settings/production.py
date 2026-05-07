@@ -1,47 +1,59 @@
 from .base import *
+from decouple import Csv, config
 
-DEBUG = True
+DEBUG = config("DEBUG", default=False, cast=bool)
 
-SECRET_KEY = 'django-insecure-l_!4sv+5z%qhzn+1p0%vx98j&efjw^^9yx#ln$@s(4swj=zv_#'
+SECRET_KEY = config("SECRET_KEY")
+SIMPLE_JWT["SIGNING_KEY"] = SECRET_KEY
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = config("ALLOWED_HOSTS", cast=Csv())
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'arabica_db',
-        'USER': 'arabica_user',
-        'PASSWORD': 'arabica',
-        'HOST': 'db',
-        'PORT': '5432',
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": config("POSTGRES_DB"),
+        "USER": config("POSTGRES_USER"),
+        "PASSWORD": config("POSTGRES_PASSWORD"),
+        "HOST": config("POSTGRES_HOST", default="db"),
+        "PORT": config("POSTGRES_PORT", default="5432"),
     }
 }
 
 CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
-        'LOCATION': 'redis://redis:6379/1',
+    "default": {
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": config("REDIS_URL", default="redis://redis:6379/1"),
+    }
+}
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [config("CHANNEL_REDIS_URL", default=config("REDIS_URL", default="redis://redis:6379/1"))],
+        },
     }
 }
 
 # Полностью переопределяем CSRF_TRUSTED_ORIGINS для production
-CSRF_TRUSTED_ORIGINS = [
-    "http://77.95.206.95:8001",
-    "http://77.95.206.95",
-    "http://62.72.33.230:8001",
-    "http://62.72.33.230",
-    "http://13.49.241.188",
-    "http://localhost",
-    "http://localhost:8000",
-    "http://localhost:8001",
-    "http://localhost:3000",
-    "http://localhost:5173",
-]
+CSRF_TRUSTED_ORIGINS = config("CSRF_TRUSTED_ORIGINS", default="", cast=Csv())
 
 # Настройки для правильного формирования абсолютных URL через прокси
 USE_X_FORWARDED_HOST = True
 USE_X_FORWARDED_PORT = True
-SECURE_PROXY_SSL_HEADER = None  # Если не используете HTTPS
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+SECURE_SSL_REDIRECT = config("SECURE_SSL_REDIRECT", default=False, cast=bool)
+SESSION_COOKIE_SECURE = config("SESSION_COOKIE_SECURE", default=True, cast=bool)
+CSRF_COOKIE_SECURE = config("CSRF_COOKIE_SECURE", default=True, cast=bool)
+SECURE_HSTS_SECONDS = config("SECURE_HSTS_SECONDS", default=0, cast=int)
+SECURE_HSTS_INCLUDE_SUBDOMAINS = config(
+    "SECURE_HSTS_INCLUDE_SUBDOMAINS", default=False, cast=bool
+)
+SECURE_HSTS_PRELOAD = config("SECURE_HSTS_PRELOAD", default=False, cast=bool)
 
 # В production используем volume для медиа файлов
-MEDIA_ROOT = '/media'
+STATIC_ROOT = "/static"
+MEDIA_ROOT = "/media"
+
+CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOWED_ORIGINS = config("CORS_ALLOWED_ORIGINS", default="", cast=Csv())

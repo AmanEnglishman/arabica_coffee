@@ -2,7 +2,8 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from apps.order.models.code import Order, Cafe
+from apps.order.models import Cafe
+from apps.order.models.code import Order
 from apps.users.models.user import User
 
 
@@ -10,16 +11,12 @@ class ActiveOrderListViewTests(APITestCase):
     def setUp(self):
         # Создаем пользователя
         self.user = User.objects.create_user(
-            phone_number="+996700000001",
-            password="testpass123"
+            phone_number="+996700000001", password="testpass123"
         )
         self.client.force_authenticate(user=self.user)
 
         # Создаем кафе
-        self.cafe = Cafe.objects.create(
-            name="Test Cafe",
-            is_active=True
-        )
+        self.cafe = Cafe.objects.create(name="Test Cafe", is_active=True)
 
         # Создаем заказы с разными статусами
         self.order_accepted = Order.objects.create(
@@ -27,7 +24,7 @@ class ActiveOrderListViewTests(APITestCase):
             cafe=self.cafe,
             status="accepted",
             delivery_type="pickup",
-            total_price=100
+            total_price=100,
         )
         self.order_ready = Order.objects.create(
             user=self.user,
@@ -35,7 +32,7 @@ class ActiveOrderListViewTests(APITestCase):
             status="ready",
             delivery_type="delivery",
             address="Test address",
-            total_price=200
+            total_price=200,
         )
         self.order_on_the_way = Order.objects.create(
             user=self.user,
@@ -43,27 +40,26 @@ class ActiveOrderListViewTests(APITestCase):
             status="on_the_way",
             delivery_type="delivery",
             address="Test address",
-            total_price=300
+            total_price=300,
         )
         self.order_delivered = Order.objects.create(
             user=self.user,
             cafe=self.cafe,
             status="delivered",
             delivery_type="pickup",
-            total_price=400
+            total_price=400,
         )
 
         # Создаем заказ другого пользователя (не должен показываться)
         self.other_user = User.objects.create_user(
-            phone_number="+996700000002",
-            password="testpass123"
+            phone_number="+996700000002", password="testpass123"
         )
         self.other_order_accepted = Order.objects.create(
             user=self.other_user,
             cafe=self.cafe,
             status="accepted",
             delivery_type="pickup",
-            total_price=500
+            total_price=500,
         )
 
     def test_active_orders_requires_authentication(self):
@@ -71,7 +67,7 @@ class ActiveOrderListViewTests(APITestCase):
         self.client.logout()
         url = reverse("active-orders")
         response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_active_orders_returns_only_active_statuses(self):
         """Тест: возвращаются только заказы со статусами accepted, ready, on_the_way"""
@@ -79,16 +75,16 @@ class ActiveOrderListViewTests(APITestCase):
         response = self.client.get(url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        
+
         # Проверяем, что в ответе только активные заказы текущего пользователя
         order_ids = [order["id"] for order in response.data["results"]]
         self.assertIn(self.order_accepted.id, order_ids)
         self.assertIn(self.order_ready.id, order_ids)
         self.assertIn(self.order_on_the_way.id, order_ids)
-        
+
         # Проверяем, что доставленный заказ не входит
         self.assertNotIn(self.order_delivered.id, order_ids)
-        
+
         # Проверяем, что заказ другого пользователя не входит
         self.assertNotIn(self.other_order_accepted.id, order_ids)
 
@@ -98,7 +94,7 @@ class ActiveOrderListViewTests(APITestCase):
         response = self.client.get(url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        
+
         order_ids = [order["id"] for order in response.data["results"]]
         # Самый новый должен быть первым (on_the_way создан последним в setUp)
         self.assertEqual(order_ids[0], self.order_on_the_way.id)
@@ -114,7 +110,7 @@ class ActiveOrderListViewTests(APITestCase):
                 cafe=self.cafe,
                 status="accepted",
                 delivery_type="pickup",
-                total_price=100 + i
+                total_price=100 + i,
             )
 
         url = reverse("active-orders")
@@ -130,8 +126,7 @@ class ActiveOrderListViewTests(APITestCase):
         """Тест: пустой список когда нет активных заказов"""
         # Удаляем все активные заказы пользователя
         Order.objects.filter(
-            user=self.user,
-            status__in=["accepted", "ready", "on_the_way"]
+            user=self.user, status__in=["accepted", "ready", "on_the_way"]
         ).delete()
 
         url = reverse("active-orders")
@@ -148,11 +143,17 @@ class ActiveOrderListViewTests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertGreater(len(response.data["results"]), 0)
-        
+
         order_data = response.data["results"][0]
         expected_fields = [
-            "id", "status", "delivery_type", "address", 
-            "delivery_time", "total_price", "created_at", "items"
+            "id",
+            "status",
+            "delivery_type",
+            "address",
+            "delivery_time",
+            "total_price",
+            "created_at",
+            "items",
         ]
         for field in expected_fields:
             self.assertIn(field, order_data)

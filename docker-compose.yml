@@ -4,9 +4,9 @@ services:
     image: postgres:15
     container_name: arabica-postgres
     environment:
-      POSTGRES_DB: arabica_db
-      POSTGRES_USER: arabica_user
-      POSTGRES_PASSWORD: arabica
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     restart: always
@@ -19,20 +19,35 @@ services:
     restart: always
 
   django:
+    image: ${DOCKER_IMAGE:-arabica_coffee-django}
     build: .
     container_name: arabica-back
     working_dir: /src
     environment:
       - DJANGO_ENV=production
+      - SECRET_KEY=${SECRET_KEY}
+      - DEBUG=${DEBUG:-False}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+      - CSRF_TRUSTED_ORIGINS=${CSRF_TRUSTED_ORIGINS}
+      - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_HOST=db
+      - POSTGRES_PORT=5432
+      - REDIS_URL=redis://redis:6379/1
+      - CHANNEL_REDIS_URL=redis://redis:6379/2
+      - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID}
+      - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN}
+      - TWILIO_VERIFY_SERVICE_SID=${TWILIO_VERIFY_SERVICE_SID}
     volumes:
-      - .:/src
       - static_volume:/static
       - media_volume:/media
     restart: always
     depends_on:
       - db
       - redis
-    command: sh -c "python manage.py migrate && gunicorn arabica.wsgi:application --bind 0.0.0.0:8000"
+    command: sh -c "python manage.py collectstatic --noinput && python manage.py migrate && daphne -b 0.0.0.0 -p 8000 arabica.asgi:application"
 
   nginx:
     image: nginx

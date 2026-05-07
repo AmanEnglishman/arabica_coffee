@@ -39,6 +39,7 @@ jobs:
           type=semver,pattern={{major}}.{{minor}}
           type=semver,pattern={{major}}
           type=sha,prefix={{branch}}-
+          type=sha,format=long,prefix=
 
     - name: Build and push Docker image
       uses: docker/build-push-action@v5
@@ -64,6 +65,7 @@ jobs:
         key: ${{ secrets.DEPLOY_SSH_KEY }}
         script: |
           cd /var/www/arabica_coffee
+          export DOCKER_IMAGE=ghcr.io/${{ github.repository }}:${{ github.sha }}
           docker pull ghcr.io/${{ github.repository }}:${{ github.sha }}
           docker-compose -f docker-compose.yml down
           docker-compose -f docker-compose.yml up -d

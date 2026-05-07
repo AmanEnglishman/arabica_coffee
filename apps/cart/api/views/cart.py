@@ -1,5 +1,6 @@
 from drf_spectacular.utils import OpenApiResponse, extend_schema
 from django.core.cache import cache
+from django.db import transaction
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
@@ -27,8 +28,8 @@ from apps.menu.models.product import Product
     tags=["Cart"],
     responses={
         200: CartSerializer,
-        403: OpenApiResponse(description="Нет прав доступа")
-    }
+        403: OpenApiResponse(description="Нет прав доступа"),
+    },
 )
 class CartView(APIView):
     permission_classes = [IsAuthenticated]
@@ -50,17 +51,18 @@ class CartView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-
 @extend_schema(
     summary="Добавить товар в корзину",
     tags=["Cart"],
     request=AddCartItemRequestSerializer,
     responses={
-        201: OpenApiResponse(description="Товар успешно добавлен в корзину", response=CartItemSerializer),
+        201: OpenApiResponse(
+            description="Товар успешно добавлен в корзину", response=CartItemSerializer
+        ),
         400: OpenApiResponse(description="Ошибка данных или не найден продукт/опции"),
         403: OpenApiResponse(description="Нет прав доступа"),
         404: OpenApiResponse(description="Продукт или опция не найдены"),
-    }
+    },
 )
 class AddCartItemView(APIView):
     permission_classes = [IsAuthenticated]
@@ -75,16 +77,33 @@ class AddCartItemView(APIView):
         comment = serializer.validated_data.get("comment", "")
 
         try:
-            product = Product.objects.get(id=product_id)
+            product = Product.objects.get(id=product_id, is_active=True)
             cart, _ = Cart.objects.get_or_create(user=request.user)
 
-            cart_item = CartItem.objects.create(
-                cart=cart, product=product, quantity=quantity, comment=comment
+            option_ids = list(dict.fromkeys(options))
+            option_values = list(
+                OptionValue.objects.filter(
+                    id__in=option_ids,
+                    type__product_links__product=product,
+                ).distinct()
             )
+            if len(option_values) != len(option_ids):
+                return api_error(
+                    code="invalid_options",
+                    message="Одна или несколько опций недоступны для указанного продукта.",
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                )
 
-            for option_id in options:
-                option_value = OptionValue.objects.get(id=option_id)
-                CartItemOption.objects.create(cart_item=cart_item, option_value=option_value)
+            with transaction.atomic():
+                cart_item = CartItem.objects.create(
+                    cart=cart, product=product, quantity=quantity, comment=comment
+                )
+
+                for option_value in option_values:
+                    CartItemOption.objects.create(
+                        cart_item=cart_item,
+                        option_value=option_value,
+                    )
 
             cache.delete(f"user_cart_{request.user.id}")
 
@@ -94,7 +113,7 @@ class AddCartItemView(APIView):
         except Product.DoesNotExist:
             return api_error(
                 code="product_not_found",
-                message="Продукт с указанным ID не найден.",
+                message="Продукт с указанным ID не найден или недоступен.",
                 status_code=status.HTTP_404_NOT_FOUND,
             )
         except OptionValue.DoesNotExist:
@@ -110,11 +129,13 @@ class AddCartItemView(APIView):
     tags=["Cart"],
     request=UpdateCartItemRequestSerializer,
     responses={
-        200: OpenApiResponse(description="Позиция обновлена", response=CartItemSerializer),
+        200: OpenApiResponse(
+            description="Позиция обновлена", response=CartItemSerializer
+        ),
         400: OpenApiResponse(description="Некорректные данные"),
         403: OpenApiResponse(description="Нет прав доступа"),
         404: OpenApiResponse(description="Позиция не найдена"),
-    }
+    },
 )
 class UpdateCartItemView(APIView):
     permission_classes = [IsAuthenticated]
@@ -126,7 +147,9 @@ class UpdateCartItemView(APIView):
         cart, _ = Cart.objects.get_or_create(user=request.user)
         cart_item = get_object_or_404(CartItem, id=pk, cart=cart)
 
-        cart_item.quantity = serializer.validated_data.get("quantity", cart_item.quantity)
+        cart_item.quantity = serializer.validated_data.get(
+            "quantity", cart_item.quantity
+        )
         cart_item.comment = serializer.validated_data.get("comment", cart_item.comment)
         cart_item.save()
 
@@ -136,7 +159,6 @@ class UpdateCartItemView(APIView):
         return Response(response_serializer.data, status=status.HTTP_200_OK)
 
 
-
 @extend_schema(
     summary="Удалить позицию из корзины",
     tags=["Cart"],
@@ -144,7 +166,7 @@ class UpdateCartItemView(APIView):
         204: OpenApiResponse(description="Позиция удалена"),
         403: OpenApiResponse(description="Нет прав доступа"),
         404: OpenApiResponse(description="Позиция не найдена"),
-    }
+    },
 )
 class DeleteCartItemView(APIView):
     permission_classes = [IsAuthenticated]
@@ -161,4 +183,6 @@ class DeleteCartItemView(APIView):
 
         cache.delete(f"user_cart_{request.user.id}")
 
-        return Response({"message": "Позиция успешно удалена."}, status=status.HTTP_204_NO_CONTENT)
+        return Response(
+            {"message": "Позиция успешно удалена."}, status=status.HTTP_204_NO_CONTENT
+        )

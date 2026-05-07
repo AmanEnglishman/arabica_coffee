@@ -1,23 +1,28 @@
 from rest_framework.test import APITestCase
 from rest_framework import status
 from django.contrib.auth import get_user_model
+from django.urls import reverse
 from apps.cart.models import Cart, CartItem, CartItemOption
-from apps.menu.models import Product, OptionValue, OptionType
-
+from apps.menu.models import Product, OptionValue, OptionType, ProductOptionType
 
 User = get_user_model()
 from apps.menu.models import Subcategory, Category
+
 
 class TestCartAPI(APITestCase):
     def setUp(self):
         """Настройка данных для тестов."""
         # Создаем тестового пользователя
-        self.user = User.objects.create_user(phone_number="+996123123123", password="testpassword")
-        self.client.login(phone_number="+996123123123", password="testpassword")
+        self.user = User.objects.create_user(
+            phone_number="+996123123123", password="testpassword"
+        )
+        self.client.force_authenticate(user=self.user)
 
         # Создаем тестовую категорию и подкатегорию
         self.category = Category.objects.create(title="Напитки")
-        self.subcategory = Subcategory.objects.create(title="Горячие напитки", category=self.category)
+        self.subcategory = Subcategory.objects.create(
+            title="Горячие напитки", category=self.category
+        )
 
         # Создаем тестовые данные: продукт, опции, корзину
         self.product = Product.objects.create(
@@ -33,12 +38,18 @@ class TestCartAPI(APITestCase):
             value="0.4 литра",
             additional_cost=50,
         )
+        ProductOptionType.objects.create(
+            product=self.product,
+            option_type=self.option_type,
+        )
         self.cart = Cart.objects.create(user=self.user)
-        self.cart_item = CartItem.objects.create(cart=self.cart, product=self.product, quantity=1)
+        self.cart_item = CartItem.objects.create(
+            cart=self.cart, product=self.product, quantity=1
+        )
 
     def test_get_cart(self):
         """Тест: Проверка получения корзины."""
-        response = self.client.get("/cart/")
+        response = self.client.get(reverse("cart-view"))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn("items", response.data)
         self.assertEqual(len(response.data["items"]), 1)
@@ -50,16 +61,20 @@ class TestCartAPI(APITestCase):
             "quantity": 2,
             "options": [self.option1.id],
         }
-        response = self.client.post("/cart/item/", data=payload)
+        response = self.client.post(reverse("add-cart-item"), data=payload)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_delete_item_decrements_quantity_when_more_than_one(self):
         """Тест: DELETE уменьшает quantity на 1 и не удаляет всю позицию."""
         self.cart_item.quantity = 2
         self.cart_item.save(update_fields=["quantity"])
-        CartItemOption.objects.create(cart_item=self.cart_item, option_value=self.option1)
+        CartItemOption.objects.create(
+            cart_item=self.cart_item, option_value=self.option1
+        )
 
-        response = self.client.delete(f"/cart/item/{self.cart_item.id}/delete/")
+        response = self.client.delete(
+            reverse("delete-cart-item", kwargs={"pk": self.cart_item.id})
+        )
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.cart_item.refresh_from_db()
@@ -68,9 +83,13 @@ class TestCartAPI(APITestCase):
 
     def test_delete_item_removes_row_when_quantity_is_one(self):
         """Тест: DELETE полностью удаляет позицию при quantity == 1."""
-        CartItemOption.objects.create(cart_item=self.cart_item, option_value=self.option1)
+        CartItemOption.objects.create(
+            cart_item=self.cart_item, option_value=self.option1
+        )
 
-        response = self.client.delete(f"/cart/item/{self.cart_item.id}/delete/")
+        response = self.client.delete(
+            reverse("delete-cart-item", kwargs={"pk": self.cart_item.id})
+        )
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertFalse(CartItem.objects.filter(id=self.cart_item.id).exists())
