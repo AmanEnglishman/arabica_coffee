@@ -48,6 +48,13 @@ class Order(models.Model):
 
     class Meta:
         app_label = "order"
+        indexes = [
+            models.Index(fields=["status"], name="order_status_idx"),
+            models.Index(fields=["user"], name="order_user_idx"),
+            models.Index(fields=["cafe"], name="order_cafe_idx"),
+            models.Index(fields=["courier"], name="order_courier_idx"),
+            models.Index(fields=["status", "cafe"], name="order_status_cafe_idx"),
+        ]
 
 
 class OrderItem(models.Model):

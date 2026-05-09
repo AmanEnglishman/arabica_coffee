@@ -8,6 +8,7 @@ from apps.order.crm_services import (
     get_active_orders,
     get_cafe_couriers,
     get_staff_membership,
+    get_today_stats,
     serialize_active_orders,
 )
 from apps.order.models import CafeMembership, Order
@@ -36,20 +37,33 @@ def crm_orders_view(request):
     if membership is None:
         return render(request, "crm/forbidden.html", status=403)
 
+    cafe = membership.cafe
+    couriers = get_cafe_couriers(cafe)
+    stats = get_today_stats(cafe)
+    staff_name = " ".join(
+        p for p in [request.user.first_name, request.user.last_name] if p
+    ) or request.user.phone_number
+
     return render(
         request,
         "crm/orders.html",
         {
-            "cafe": membership.cafe,
-            "orders": serialize_active_orders(membership.cafe),
+            "cafe": cafe,
+            "orders": serialize_active_orders(cafe),
             "couriers": [
                 {
-                    "id": courier.user_id,
-                    "phone_number": courier.user.phone_number,
+                    "id": c.user_id,
+                    "phone_number": c.user.phone_number,
+                    "name": " ".join(
+                        p for p in [c.user.first_name, c.user.last_name] if p
+                    ) or c.user.phone_number,
                 }
-                for courier in get_cafe_couriers(membership.cafe)
+                for c in couriers
             ],
-            "active_count": get_active_orders(membership.cafe).count(),
+            "active_count": get_active_orders(cafe).count(),
+            "delivered_today": stats["delivered_count"],
+            "revenue_today": stats["revenue_today"],
+            "staff_name": staff_name,
         },
     )
 

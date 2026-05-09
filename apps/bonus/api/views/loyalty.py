@@ -92,7 +92,7 @@ class AddCoffeeCupView(APIView):
         user = get_object_or_404(User, id=user_id)
         user.coffee_cups += 1
 
-        if user.coffee_cups == 6:
+        if user.coffee_cups >= 6:
             user.coffee_cups = 0
             message = "Пользователь получил бесплатную чашку кофе!"
         else:

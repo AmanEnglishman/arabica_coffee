@@ -3,337 +3,579 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>CRM Arabica</title>
+  <title>CRM — {{ cafe.name }}</title>
   <style>
     :root {
-      --bg: #f6f3ee;
-      --panel: #fffaf3;
-      --line: #dfd6ca;
-      --text: #201711;
-      --muted: #716257;
-      --accent: #9b4d2c;
-      --accent-dark: #74361d;
-      --green: #247857;
-      --amber: #9a6200;
-      --blue: #2f5f8f;
-      --danger: #9d2d24;
+      --bg: #f0ebe3;
+      --surface: #faf7f2;
+      --surface-2: #fff;
+      --border: #e0d5c8;
+      --border-soft: #ede6db;
+      --text: #1a110a;
+      --text-2: #5c4b3c;
+      --text-3: #9c8878;
+      --accent: #8b3a1a;
+      --accent-h: #6e2c12;
+      --accent-light: #f5e8e1;
+      --green: #1a6641;
+      --green-bg: #e4f4ec;
+      --amber: #7a5000;
+      --amber-bg: #fef3d0;
+      --blue: #1d4f82;
+      --blue-bg: #deeaf8;
+      --red: #8b1a1a;
+      --red-bg: #fde8e8;
+      --shadow-sm: 0 1px 3px rgba(60,35,15,.08);
+      --shadow-md: 0 4px 16px rgba(60,35,15,.10);
+      --shadow-lg: 0 8px 32px rgba(60,35,15,.14);
+      --r: 10px;
+      --r-sm: 6px;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      margin: 0;
-      min-height: 100vh;
-      font-family: Arial, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+      font-size: 14px;
       background: var(--bg);
       color: var(--text);
-    }
-
-    button,
-    select {
-      font: inherit;
-    }
-
-    .shell {
       min-height: 100vh;
-      display: grid;
-      grid-template-rows: auto 1fr;
+      display: flex;
+      flex-direction: column;
     }
 
+    button, select, input { font: inherit; }
+
+    /* ── TOPBAR ── */
     .topbar {
       position: sticky;
       top: 0;
-      z-index: 5;
+      z-index: 20;
       display: flex;
       align-items: center;
-      justify-content: space-between;
       gap: 16px;
-      padding: 16px 24px;
-      border-bottom: 1px solid var(--line);
-      background: rgb(255 250 243 / 94%);
-      backdrop-filter: blur(10px);
+      padding: 0 24px;
+      height: 60px;
+      background: var(--accent);
+      color: #fff;
+      box-shadow: var(--shadow-md);
     }
 
-    .brand {
-      min-width: 0;
+    .topbar-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
     }
 
-    .brand h1 {
-      margin: 0;
-      font-size: 20px;
-      line-height: 1.2;
+    .topbar-logo {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: rgba(255,255,255,.18);
+      display: grid;
+      place-items: center;
+      font-size: 18px;
     }
 
-    .brand span {
-      display: block;
-      margin-top: 4px;
-      color: var(--muted);
-      font-size: 13px;
+    .topbar-title {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: -.2px;
+    }
+
+    .topbar-cafe {
+      font-size: 12px;
+      opacity: .75;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      max-width: 220px;
     }
 
-    .top-meta {
+    .topbar-sep { width: 1px; height: 28px; background: rgba(255,255,255,.2); flex-shrink: 0; }
+
+    .topbar-right {
       display: flex;
       align-items: center;
       gap: 12px;
-      color: var(--muted);
-      font-size: 14px;
-      white-space: nowrap;
+      margin-left: auto;
+      flex-shrink: 0;
     }
 
-    .live {
-      display: inline-flex;
+    .topbar-staff {
+      display: flex;
       align-items: center;
       gap: 7px;
-      padding: 7px 10px;
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      background: #fff;
-      color: var(--muted);
+      font-size: 13px;
+      opacity: .9;
     }
 
-    .live::before {
-      content: "";
-      width: 8px;
-      height: 8px;
+    .topbar-staff-avatar {
+      width: 28px;
+      height: 28px;
       border-radius: 50%;
-      background: var(--amber);
+      background: rgba(255,255,255,.22);
+      display: grid;
+      place-items: center;
+      font-size: 12px;
+      font-weight: 700;
     }
 
-    .live.is-online::before {
-      background: var(--green);
+    .topbar-clock {
+      font-size: 15px;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      opacity: .95;
     }
 
-    .live.is-offline::before {
-      background: var(--danger);
+    .live-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.15);
+      font-size: 12px;
+      font-weight: 600;
     }
 
+    .live-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #fbbf24;
+      transition: background .3s;
+    }
+
+    .live-badge.online .live-dot  { background: #4ade80; animation: pulse 2s infinite; }
+    .live-badge.offline .live-dot { background: #f87171; }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: .4; }
+    }
+
+    /* ── STATS BAR ── */
+    .statsbar {
+      display: flex;
+      align-items: stretch;
+      gap: 0;
+      padding: 0 24px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      overflow-x: auto;
+    }
+
+    .stat {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 20px;
+      border-right: 1px solid var(--border-soft);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .stat:last-child { border-right: none; }
+
+    .stat-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      font-size: 17px;
+      flex-shrink: 0;
+    }
+
+    .stat-icon.new     { background: var(--amber-bg); }
+    .stat-icon.ready   { background: var(--green-bg); }
+    .stat-icon.deliver { background: var(--blue-bg); }
+    .stat-icon.done    { background: #f0f0f5; }
+    .stat-icon.revenue { background: var(--accent-light); }
+
+    .stat-info { line-height: 1.2; }
+    .stat-value { font-size: 20px; font-weight: 700; }
+    .stat-label { font-size: 11px; color: var(--text-3); margin-top: 1px; }
+
+    /* ── BOARD ── */
     .board {
       display: grid;
-      grid-template-columns: repeat(3, minmax(260px, 1fr));
+      grid-template-columns: repeat(3, minmax(280px, 1fr));
       gap: 16px;
-      padding: 18px 24px 28px;
+      padding: 16px 24px 28px;
       align-items: start;
+      flex: 1;
     }
 
     .lane {
-      min-width: 0;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: rgb(255 250 243 / 72%);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      background: var(--surface);
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
     }
 
     .lane-head {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 12px;
-      min-height: 52px;
       padding: 13px 14px;
-      border-bottom: 1px solid var(--line);
+      border-bottom: 1px solid var(--border-soft);
     }
 
-    .lane-title {
-      margin: 0;
-      font-size: 15px;
-    }
+    .lane-title-wrap { display: flex; align-items: center; gap: 8px; }
 
-    .count {
-      min-width: 28px;
-      padding: 4px 8px;
+    .lane-icon { font-size: 16px; }
+
+    .lane-title { font-size: 14px; font-weight: 700; }
+
+    .lane-count {
+      min-width: 26px;
+      padding: 3px 8px;
       border-radius: 999px;
-      background: #ece3d8;
-      color: var(--muted);
       text-align: center;
-      font-size: 13px;
+      font-size: 12px;
+      font-weight: 700;
+      background: #e8dfd4;
+      color: var(--text-2);
     }
+
+    .lane[data-lane="accepted"] .lane-count  { background: var(--amber-bg); color: var(--amber); }
+    .lane[data-lane="ready"]    .lane-count  { background: var(--green-bg); color: var(--green); }
+    .lane[data-lane="on_the_way"] .lane-count { background: var(--blue-bg); color: var(--blue); }
 
     .lane-body {
-      display: grid;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
       gap: 10px;
-      padding: 12px;
-      min-height: 140px;
+      min-height: 120px;
     }
 
+    /* ── EMPTY STATE ── */
     .empty {
-      min-height: 116px;
-      display: grid;
-      place-items: center;
-      border: 1px dashed #d9cec0;
-      border-radius: 8px;
-      color: var(--muted);
-      font-size: 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      min-height: 110px;
+      border: 1.5px dashed var(--border);
+      border-radius: var(--r-sm);
+      color: var(--text-3);
+      font-size: 13px;
       text-align: center;
-      padding: 18px;
+      padding: 20px;
     }
 
-    .order {
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: #fff;
-      box-shadow: 0 8px 20px rgb(54 38 24 / 7%);
+    .empty-icon { font-size: 26px; opacity: .5; }
+
+    /* ── ORDER CARD ── */
+    .order-card {
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      background: var(--surface-2);
+      box-shadow: var(--shadow-sm);
       overflow: hidden;
+      transition: box-shadow .2s, border-color .2s;
+      animation: slideIn .25s ease;
     }
 
-    .order-main {
-      padding: 13px;
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-6px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
 
-    .order-row {
+    .order-card:hover { box-shadow: var(--shadow-md); }
+
+    .order-card.urgent {
+      border-color: #f87171;
+      box-shadow: 0 0 0 2px rgba(248,113,113,.2), var(--shadow-sm);
+      animation: urgentPulse 2.5s infinite;
+    }
+
+    @keyframes urgentPulse {
+      0%, 100% { box-shadow: 0 0 0 2px rgba(248,113,113,.2), var(--shadow-sm); }
+      50%       { box-shadow: 0 0 0 4px rgba(248,113,113,.35), var(--shadow-sm); }
+    }
+
+    /* ── CARD HEADER ── */
+    .card-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 12px;
+      padding: 11px 13px 9px;
+      border-bottom: 1px solid var(--border-soft);
     }
 
-    .order-id {
-      font-size: 17px;
-      font-weight: 700;
+    .card-id-row { display: flex; align-items: center; gap: 8px; }
+
+    .card-id {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--accent);
     }
 
-    .badge {
+    .card-type-badge {
       display: inline-flex;
       align-items: center;
-      min-height: 24px;
+      gap: 4px;
+      padding: 2px 7px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .card-type-badge.delivery { background: var(--blue-bg); color: var(--blue); }
+    .card-type-badge.pickup   { background: var(--amber-bg); color: var(--amber); }
+
+    .card-timer {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
       padding: 3px 8px;
       border-radius: 999px;
-      font-size: 12px;
-      line-height: 1;
-      background: #efe7dc;
-      color: var(--muted);
-    }
-
-    .badge.accepted {
-      background: #fff1cf;
-      color: var(--amber);
-    }
-
-    .badge.ready {
-      background: #def4ea;
+      background: var(--green-bg);
       color: var(--green);
     }
 
-    .badge.on_the_way {
-      background: #e0ecf8;
-      color: var(--blue);
-    }
+    .card-timer.warn  { background: var(--amber-bg); color: var(--amber); }
+    .card-timer.alert { background: var(--red-bg);   color: var(--red); }
 
-    .details {
-      display: grid;
-      gap: 6px;
-      margin-top: 10px;
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.35;
-    }
+    /* ── CARD BODY ── */
+    .card-body { padding: 10px 13px; }
 
-    .items {
-      margin: 12px 0 0;
-      padding: 0;
-      list-style: none;
-      display: grid;
+    .info-row {
+      display: flex;
+      align-items: flex-start;
       gap: 7px;
-      font-size: 14px;
+      padding: 4px 0;
+      color: var(--text-2);
+      font-size: 13px;
+      line-height: 1.4;
     }
 
-    .items li {
-      display: grid;
-      gap: 3px;
-      padding-top: 7px;
-      border-top: 1px solid #f0e7dc;
+    .info-row:not(:last-child) { border-bottom: 1px solid var(--border-soft); }
+
+    .info-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+
+    .info-label { color: var(--text-3); font-size: 11px; }
+    .info-val   { font-weight: 600; color: var(--text); }
+
+    /* ── ITEMS ── */
+    .items-section {
+      margin: 8px 0 0;
+      border-top: 1px solid var(--border-soft);
+      padding-top: 8px;
     }
 
-    .item-line {
+    .items-label {
+      font-size: 11px;
+      color: var(--text-3);
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      margin-bottom: 6px;
+    }
+
+    .item-row {
       display: flex;
       justify-content: space-between;
-      gap: 12px;
-    }
-
-    .options {
-      color: var(--muted);
-      font-size: 12px;
-    }
-
-    .actions {
-      display: grid;
+      align-items: flex-start;
       gap: 8px;
-      padding: 11px 13px 13px;
-      border-top: 1px solid var(--line);
-      background: #fbf6ef;
+      padding: 5px 0;
+      font-size: 13px;
     }
 
-    .action-row {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
+    .item-row:not(:last-child) { border-bottom: 1px solid var(--border-soft); }
+
+    .item-name { font-weight: 600; color: var(--text); }
+    .item-qty  { color: var(--text-3); }
+    .item-opts { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+    .item-price { font-weight: 700; color: var(--accent); white-space: nowrap; flex-shrink: 0; }
+
+    /* ── CARD TOTAL ── */
+    .card-total {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 8px;
+      padding: 8px 0 0;
+      border-top: 1px solid var(--border-soft);
+    }
+
+    .card-total-label { font-size: 12px; color: var(--text-3); }
+    .card-total-price { font-size: 17px; font-weight: 800; color: var(--accent); }
+
+    /* ── CARD ACTIONS ── */
+    .card-actions {
+      padding: 10px 13px 12px;
+      border-top: 1px solid var(--border-soft);
+      background: #fdf9f5;
+      display: flex;
+      flex-direction: column;
       gap: 8px;
     }
 
+    .courier-assign-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .courier-select {
+      flex: 1;
+      min-height: 38px;
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      padding: 0 10px;
+      background: var(--surface-2);
+      color: var(--text);
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23999' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      padding-right: 28px;
+    }
+
+    .courier-select:focus { outline: 2px solid var(--accent); border-color: var(--accent); }
+
+    /* ── BUTTONS ── */
     .btn {
-      min-height: 36px;
-      border: 1px solid transparent;
-      border-radius: 7px;
-      padding: 8px 10px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      min-height: 38px;
+      padding: 0 16px;
+      border: none;
+      border-radius: var(--r-sm);
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background .15s, transform .1s, opacity .15s;
+      white-space: nowrap;
+      user-select: none;
+    }
+
+    .btn:active { transform: scale(.97); }
+    .btn:disabled { opacity: .55; cursor: not-allowed; transform: none; }
+
+    .btn-primary {
       background: var(--accent);
       color: #fff;
-      cursor: pointer;
+    }
+    .btn-primary:hover:not(:disabled) { background: var(--accent-h); }
+
+    .btn-success {
+      background: var(--green);
+      color: #fff;
+    }
+    .btn-success:hover:not(:disabled) { background: #14553a; }
+
+    .btn-blue {
+      background: var(--blue);
+      color: #fff;
+    }
+    .btn-blue:hover:not(:disabled) { background: #163d68; }
+
+    .btn-full { width: 100%; }
+
+    /* ── SPINNER ── */
+    .spinner {
+      display: none;
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255,255,255,.4);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .6s linear infinite;
     }
 
-    .btn:hover {
-      background: var(--accent-dark);
-    }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
-    .btn.secondary {
-      background: #fff;
-      color: var(--accent-dark);
-      border-color: #d8c9b7;
-    }
+    .btn.loading .spinner { display: block; }
+    .btn.loading .btn-text { opacity: 0; position: absolute; }
 
-    .btn.secondary:hover {
-      background: #f6eee4;
-    }
-
-    .select {
-      width: 100%;
-      min-height: 36px;
-      border: 1px solid #d8c9b7;
-      border-radius: 7px;
-      padding: 7px 9px;
-      background: #fff;
-      color: var(--text);
+    /* ── TOASTS ── */
+    .toast-container {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-width: min(380px, calc(100vw - 40px));
     }
 
     .toast {
-      position: fixed;
-      right: 18px;
-      bottom: 18px;
-      z-index: 10;
-      max-width: min(360px, calc(100vw - 36px));
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
       padding: 12px 14px;
-      border: 1px solid #dfc0b9;
-      border-radius: 8px;
-      background: #fff;
-      color: var(--danger);
-      box-shadow: 0 16px 38px rgb(54 38 24 / 16%);
+      border-radius: var(--r);
+      box-shadow: var(--shadow-lg);
+      animation: toastIn .2s ease;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateX(20px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    .toast.error   { background: #fff0f0; border: 1px solid #fca5a5; color: var(--red); }
+    .toast.success { background: #f0faf5; border: 1px solid #86efac; color: var(--green); }
+    .toast.warning { background: #fffbeb; border: 1px solid #fcd34d; color: var(--amber); }
+
+    .toast-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+    .toast-msg  { flex: 1; }
+
+    /* ── NEW ORDER BANNER ── */
+    .new-order-banner {
       display: none;
+      position: fixed;
+      top: 70px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 50;
+      padding: 10px 20px;
+      background: var(--amber);
+      color: #fff;
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 700;
+      box-shadow: var(--shadow-lg);
+      animation: bounce .4s ease;
+      cursor: pointer;
     }
 
-    .toast.is-visible {
-      display: block;
+    .new-order-banner.show { display: block; }
+
+    @keyframes bounce {
+      0%   { transform: translateX(-50%) scale(.8); opacity: 0; }
+      70%  { transform: translateX(-50%) scale(1.05); }
+      100% { transform: translateX(-50%) scale(1); opacity: 1; }
     }
 
-    @media (max-width: 980px) {
-      .board {
-        grid-template-columns: 1fr;
-      }
+    /* ── MEDIA ── */
+    @media (max-width: 1024px) {
+      .board { grid-template-columns: repeat(2, 1fr); }
+    }
 
-      .topbar {
-        align-items: flex-start;
-        flex-direction: column;
-      }
+    @media (max-width: 680px) {
+      .board { grid-template-columns: 1fr; padding: 12px; }
+      .topbar { padding: 0 14px; }
+      .statsbar { padding: 0 14px; }
+      .topbar-cafe, .topbar-sep, .topbar-staff { display: none; }
+      .stat { padding: 10px 14px; }
+      .stat-value { font-size: 17px; }
     }
   </style>
 </head>
@@ -342,251 +584,486 @@
   {{ couriers|json_script:"couriers-data" }}
   {% csrf_token %}
 
-  <div class="shell">
-    <header class="topbar">
-      <div class="brand">
-        <h1>Arabica CRM</h1>
-        <span>{{ cafe.name }}{% if cafe.address %} · {{ cafe.address }}{% endif %}</span>
+  <!-- ── TOPBAR ── -->
+  <header class="topbar">
+    <div class="topbar-brand">
+      <div class="topbar-logo">☕</div>
+      <div>
+        <div class="topbar-title">Arabica CRM</div>
+        <div class="topbar-cafe">{{ cafe.name }}{% if cafe.address %} · {{ cafe.address }}{% endif %}</div>
       </div>
-      <div class="top-meta">
-        <span id="total-count">{{ active_count }} активных</span>
-        <span id="live-state" class="live">подключение</span>
+    </div>
+
+    <div class="topbar-sep"></div>
+
+    <div class="topbar-staff">
+      <div class="topbar-staff-avatar">{{ staff_name|first|upper }}</div>
+      <span>{{ staff_name }}</span>
+    </div>
+
+    <div class="topbar-right">
+      <div class="topbar-clock" id="clock">--:--</div>
+      <div class="live-badge" id="live-badge">
+        <div class="live-dot"></div>
+        <span id="live-text">подключение…</span>
       </div>
-    </header>
+    </div>
+  </header>
 
-    <main class="board" id="board">
-      <section class="lane" data-lane="accepted">
-        <div class="lane-head">
-          <h2 class="lane-title">Новые</h2>
-          <span class="count" data-count="accepted">0</span>
-        </div>
-        <div class="lane-body" data-body="accepted"></div>
-      </section>
-
-      <section class="lane" data-lane="ready">
-        <div class="lane-head">
-          <h2 class="lane-title">Готовые</h2>
-          <span class="count" data-count="ready">0</span>
-        </div>
-        <div class="lane-body" data-body="ready"></div>
-      </section>
-
-      <section class="lane" data-lane="on_the_way">
-        <div class="lane-head">
-          <h2 class="lane-title">В доставке</h2>
-          <span class="count" data-count="on_the_way">0</span>
-        </div>
-        <div class="lane-body" data-body="on_the_way"></div>
-      </section>
-    </main>
+  <!-- ── STATS BAR ── -->
+  <div class="statsbar">
+    <div class="stat">
+      <div class="stat-icon new">🔔</div>
+      <div class="stat-info">
+        <div class="stat-value" id="stat-accepted">0</div>
+        <div class="stat-label">Новые</div>
+      </div>
+    </div>
+    <div class="stat">
+      <div class="stat-icon ready">✅</div>
+      <div class="stat-info">
+        <div class="stat-value" id="stat-ready">0</div>
+        <div class="stat-label">Готовые</div>
+      </div>
+    </div>
+    <div class="stat">
+      <div class="stat-icon deliver">🚴</div>
+      <div class="stat-info">
+        <div class="stat-value" id="stat-on_the_way">0</div>
+        <div class="stat-label">В доставке</div>
+      </div>
+    </div>
+    <div class="stat">
+      <div class="stat-icon done">📦</div>
+      <div class="stat-info">
+        <div class="stat-value">{{ delivered_today }}</div>
+        <div class="stat-label">Выдано сегодня</div>
+      </div>
+    </div>
+    <div class="stat">
+      <div class="stat-icon revenue">💰</div>
+      <div class="stat-info">
+        <div class="stat-value">{{ revenue_today|floatformat:0 }} сом</div>
+        <div class="stat-label">Выручка сегодня</div>
+      </div>
+    </div>
   </div>
 
-  <div id="toast" class="toast"></div>
+  <!-- ── BOARD ── -->
+  <main class="board">
+    <section class="lane" data-lane="accepted">
+      <div class="lane-head">
+        <div class="lane-title-wrap">
+          <span class="lane-icon">🔔</span>
+          <span class="lane-title">Новые заказы</span>
+        </div>
+        <span class="lane-count" data-count="accepted">0</span>
+      </div>
+      <div class="lane-body" data-body="accepted"></div>
+    </section>
+
+    <section class="lane" data-lane="ready">
+      <div class="lane-head">
+        <div class="lane-title-wrap">
+          <span class="lane-icon">✅</span>
+          <span class="lane-title">Готовые</span>
+        </div>
+        <span class="lane-count" data-count="ready">0</span>
+      </div>
+      <div class="lane-body" data-body="ready"></div>
+    </section>
+
+    <section class="lane" data-lane="on_the_way">
+      <div class="lane-head">
+        <div class="lane-title-wrap">
+          <span class="lane-icon">🚴</span>
+          <span class="lane-title">В доставке</span>
+        </div>
+        <span class="lane-count" data-count="on_the_way">0</span>
+      </div>
+      <div class="lane-body" data-body="on_the_way"></div>
+    </section>
+  </main>
+
+  <!-- ── NEW ORDER BANNER ── -->
+  <div class="new-order-banner" id="new-order-banner">
+    🔔 Новый заказ! Нажмите чтобы прокрутить
+  </div>
+
+  <!-- ── TOASTS ── -->
+  <div class="toast-container" id="toast-container"></div>
 
   <script>
+    // ── State ──────────────────────────────────────────────
     const state = {
       orders: JSON.parse(document.getElementById("initial-orders").textContent),
       couriers: JSON.parse(document.getElementById("couriers-data").textContent),
+      prevOrderIds: new Set(),
     };
 
     const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
-    const liveState = document.getElementById("live-state");
-    const totalCount = document.getElementById("total-count");
-    const toast = document.getElementById("toast");
-    const statuses = ["accepted", "ready", "on_the_way"];
+    const STATUSES = ["accepted", "ready", "on_the_way"];
+    const URGENT_MINUTES = 20;
+    const WARN_MINUTES = 10;
 
-    function setLive(text, className) {
-      liveState.textContent = text;
-      liveState.className = `live ${className}`;
+    // ── Clock ──────────────────────────────────────────────
+    function updateClock() {
+      const now = new Date();
+      document.getElementById("clock").textContent =
+        now.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+    }
+    updateClock();
+    setInterval(updateClock, 5000);
+
+    // ── Timer helpers ──────────────────────────────────────
+    function elapsedMinutes(isoString) {
+      if (!isoString) return 0;
+      return Math.floor((Date.now() - new Date(isoString).getTime()) / 60000);
     }
 
-    function showToast(message) {
-      toast.textContent = message;
-      toast.classList.add("is-visible");
-      window.setTimeout(() => toast.classList.remove("is-visible"), 3600);
+    function formatMinutes(mins) {
+      if (mins < 60) return `${mins} мин`;
+      const h = Math.floor(mins / 60);
+      const m = mins % 60;
+      return m ? `${h} ч ${m} мин` : `${h} ч`;
     }
 
-    function escapeHtml(value) {
-      return String(value ?? "")
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
+    function timerClass(mins) {
+      if (mins >= URGENT_MINUTES) return "alert";
+      if (mins >= WARN_MINUTES)   return "warn";
+      return "";
     }
 
-    function optionText(options) {
-      if (!options || !options.length) {
-        return "";
-      }
-      return options.map((option) => option.value).join(", ");
+    // ── Live timers ────────────────────────────────────────
+    function updateTimers() {
+      document.querySelectorAll("[data-timer-iso]").forEach(el => {
+        const iso = el.dataset.timerIso;
+        const mins = elapsedMinutes(iso);
+        el.textContent = "⏱ " + formatMinutes(mins);
+        el.className = "card-timer " + timerClass(mins);
+        const card = el.closest(".order-card");
+        if (card) card.classList.toggle("urgent", mins >= URGENT_MINUTES);
+      });
+    }
+
+    setInterval(updateTimers, 30000);
+
+    // ── Sound ──────────────────────────────────────────────
+    function playNotification() {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        [0, 0.18].forEach(delay => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.frequency.value = 880;
+          osc.type = "sine";
+          gain.gain.setValueAtTime(0, ctx.currentTime + delay);
+          gain.gain.linearRampToValueAtTime(0.25, ctx.currentTime + delay + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + 0.35);
+          osc.start(ctx.currentTime + delay);
+          osc.stop(ctx.currentTime + delay + 0.35);
+        });
+      } catch (_) {}
+    }
+
+    // ── HTML escape ────────────────────────────────────────
+    function esc(v) {
+      return String(v ?? "")
+        .replace(/&/g, "&amp;").replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    }
+
+    // ── Render helpers ─────────────────────────────────────
+    function renderItems(items) {
+      if (!items.length) return "";
+      const rows = items.map(item => {
+        const opts = item.options.map(o => o.value || o).join(", ");
+        return `
+          <div class="item-row">
+            <div>
+              <div class="item-name">${esc(item.product_title)} <span class="item-qty">× ${item.quantity}</span></div>
+              ${opts ? `<div class="item-opts">${esc(opts)}</div>` : ""}
+            </div>
+            <div class="item-price">${esc(item.final_price)} сом</div>
+          </div>`;
+      }).join("");
+      return `<div class="items-section">
+        <div class="items-label">Состав заказа</div>
+        ${rows}
+      </div>`;
     }
 
     function renderActions(order) {
       if (order.status === "accepted") {
-        return `<button type="button" class="btn" data-action="mark-ready" data-order="${order.id}">Готов</button>`;
+        return `
+          <button class="btn btn-primary btn-full"
+                  data-action="mark-ready" data-order="${order.id}">
+            <span class="spinner"></span>
+            <span class="btn-text">✅ Готов</span>
+          </button>`;
       }
 
       if (order.status === "ready" && order.delivery_type === "pickup") {
-        return `<button type="button" class="btn" data-action="mark-delivered" data-order="${order.id}">Выдан</button>`;
+        return `
+          <button class="btn btn-success btn-full"
+                  data-action="mark-delivered" data-order="${order.id}">
+            <span class="spinner"></span>
+            <span class="btn-text">📦 Выдать клиенту</span>
+          </button>`;
       }
 
       if (order.status === "ready" && order.delivery_type === "delivery") {
-        const options = state.couriers.map((courier) => {
-          return `<option value="${courier.id}">${escapeHtml(courier.phone_number)}</option>`;
-        }).join("");
-
+        const opts = state.couriers.map(c =>
+          `<option value="${c.id}">${esc(c.name || c.phone_number)}</option>`
+        ).join("");
         return `
-          <div class="action-row">
-            <select class="select" data-courier="${order.id}">
-              <option value="">Курьер</option>
-              ${options}
+          <div class="courier-assign-row">
+            <select class="courier-select" data-courier="${order.id}">
+              <option value="">— Выбрать курьера —</option>
+              ${opts}
             </select>
-            <button type="button" class="btn" data-action="assign-courier" data-order="${order.id}">В путь</button>
-          </div>
-        `;
+            <button class="btn btn-blue"
+                    data-action="assign-courier" data-order="${order.id}">
+              <span class="spinner"></span>
+              <span class="btn-text">🚴 В путь</span>
+            </button>
+          </div>`;
       }
 
       return "";
     }
 
-    function renderOrder(order) {
-      const customer = order.customer.name || order.customer.phone_number;
-      const destination = order.delivery_type === "delivery"
-        ? escapeHtml(order.address || "Адрес не указан")
-        : "Самовывоз";
-      const courier = order.courier.phone_number
-        ? `<div>Курьер: ${escapeHtml(order.courier.phone_number)}</div>`
-        : "";
+    function renderCard(order) {
+      const customerDisplay = esc(order.customer.name || order.customer.phone_number);
+      const phone = esc(order.customer.phone_number);
+      const isDelivery = order.delivery_type === "delivery";
+      const mins = elapsedMinutes(order.created_at_iso);
+      const timerCls = timerClass(mins);
+      const isUrgent = mins >= URGENT_MINUTES;
 
-      const items = order.items.map((item) => {
-        const options = optionText(item.options);
-        return `
-          <li>
-            <div class="item-line">
-              <span>${escapeHtml(item.product_title)} × ${item.quantity}</span>
-              <strong>${escapeHtml(item.final_price)}</strong>
-            </div>
-            ${options ? `<span class="options">${escapeHtml(options)}</span>` : ""}
-          </li>
-        `;
-      }).join("");
-
-      return `
-        <article class="order" data-order-card="${order.id}">
-          <div class="order-main">
-            <div class="order-row">
-              <span class="order-id">#${order.id}</span>
-              <span class="badge ${order.status}">${escapeHtml(order.status_label)}</span>
-            </div>
-            <div class="details">
-              <div>${escapeHtml(customer)}</div>
-              <div>${escapeHtml(order.delivery_type_label)} · ${destination}</div>
-              <div>${order.created_at}${order.delivery_time ? ` · ${order.delivery_time}` : ""}</div>
-              ${courier}
-            </div>
-            <ul class="items">${items}</ul>
-            <div class="order-row" style="margin-top: 12px;">
-              <span class="badge">${order.items.length} поз.</span>
-              <strong>${escapeHtml(order.total_price)}</strong>
-            </div>
-          </div>
-          <div class="actions">${renderActions(order)}</div>
-        </article>
-      `;
-    }
-
-    function render() {
-      const grouped = Object.fromEntries(statuses.map((status) => [status, []]));
-      state.orders.forEach((order) => {
-        if (grouped[order.status]) {
-          grouped[order.status].push(order);
-        }
-      });
-
-      statuses.forEach((status) => {
-        const body = document.querySelector(`[data-body="${status}"]`);
-        const orders = grouped[status];
-        document.querySelector(`[data-count="${status}"]`).textContent = orders.length;
-        body.innerHTML = orders.length
-          ? orders.map(renderOrder).join("")
-          : '<div class="empty">Нет заказов</div>';
-      });
-
-      totalCount.textContent = `${state.orders.length} активных`;
-    }
-
-    async function postAction(button, orderId, action) {
-      const body = new FormData();
-      if (action === "assign-courier") {
-        const select = document.querySelector(`[data-courier="${orderId}"]`);
-        if (!select || !select.value) {
-          showToast("Выберите курьера.");
-          return;
-        }
-        body.append("courier_id", select.value);
+      let timeIso = order.created_at_iso;
+      let timeLabel = "В работе";
+      if (order.status === "on_the_way" && order.on_the_way_at_iso) {
+        timeIso = order.on_the_way_at_iso;
+        timeLabel = "В пути";
+      } else if (order.status === "ready" && order.ready_at_iso) {
+        timeIso = order.ready_at_iso;
+        timeLabel = "Готов";
       }
 
-      button.disabled = true;
+      const currentMins = elapsedMinutes(timeIso);
+
+      return `
+        <article class="order-card ${isUrgent ? "urgent" : ""}" data-order-card="${order.id}">
+          <div class="card-header">
+            <div class="card-id-row">
+              <span class="card-id">#${order.id}</span>
+              <span class="card-type-badge ${order.delivery_type}">
+                ${isDelivery ? "🚴 Доставка" : "🏃 Самовывоз"}
+              </span>
+            </div>
+            <div class="card-timer ${timerCls}" data-timer-iso="${esc(order.created_at_iso)}">
+              ⏱ ${formatMinutes(mins)}
+            </div>
+          </div>
+
+          <div class="card-body">
+            <div class="info-row">
+              <span class="info-icon">👤</span>
+              <div>
+                <div class="info-label">Клиент</div>
+                <div class="info-val">${customerDisplay}</div>
+                <div style="font-size:12px;color:var(--text-3)">${phone}</div>
+              </div>
+            </div>
+
+            ${isDelivery ? `
+            <div class="info-row">
+              <span class="info-icon">📍</span>
+              <div>
+                <div class="info-label">Адрес</div>
+                <div class="info-val">${esc(order.address || "Не указан")}</div>
+                ${order.delivery_time ? `<div style="font-size:12px;color:var(--text-3)">Время: ${esc(order.delivery_time)}</div>` : ""}
+              </div>
+            </div>` : ""}
+
+            <div class="info-row">
+              <span class="info-icon">🕐</span>
+              <div>
+                <div class="info-label">Создан</div>
+                <div class="info-val">${esc(order.created_at)}</div>
+              </div>
+            </div>
+
+            ${order.courier && order.courier.name ? `
+            <div class="info-row">
+              <span class="info-icon">🚴</span>
+              <div>
+                <div class="info-label">Курьер</div>
+                <div class="info-val">${esc(order.courier.name)}</div>
+                <div style="font-size:12px;color:var(--text-3)">${esc(order.courier.phone_number)}</div>
+              </div>
+            </div>` : ""}
+
+            ${renderItems(order.items)}
+
+            <div class="card-total">
+              <span class="card-total-label">${order.items.length} позиций</span>
+              <span class="card-total-price">${esc(order.total_price)} сом</span>
+            </div>
+          </div>
+
+          <div class="card-actions">
+            ${renderActions(order)}
+          </div>
+        </article>`;
+    }
+
+    // ── Render board ───────────────────────────────────────
+    function render(newOrderIds) {
+      const grouped = Object.fromEntries(STATUSES.map(s => [s, []]));
+      state.orders.forEach(o => {
+        if (grouped[o.status]) grouped[o.status].push(o);
+      });
+
+      STATUSES.forEach(s => {
+        const body = document.querySelector(`[data-body="${s}"]`);
+        const list = grouped[s];
+        document.querySelector(`[data-count="${s}"]`).textContent = list.length;
+        const statEl = document.getElementById(`stat-${s}`);
+        if (statEl) statEl.textContent = list.length;
+
+        body.innerHTML = list.length
+          ? list.map(renderCard).join("")
+          : `<div class="empty"><div class="empty-icon">📭</div>Нет заказов</div>`;
+      });
+
+      updateTimers();
+
+      if (newOrderIds && newOrderIds.size > 0) {
+        showNewOrderBanner();
+        playNotification();
+      }
+    }
+
+    // ── New order banner ───────────────────────────────────
+    function showNewOrderBanner() {
+      const banner = document.getElementById("new-order-banner");
+      banner.classList.add("show");
+      banner.onclick = () => {
+        banner.classList.remove("show");
+        document.querySelector("[data-body='accepted']")?.scrollIntoView({ behavior: "smooth" });
+      };
+      setTimeout(() => banner.classList.remove("show"), 5000);
+    }
+
+    // ── Toasts ─────────────────────────────────────────────
+    function showToast(message, type = "error") {
+      const icons = { error: "❌", success: "✅", warning: "⚠️" };
+      const container = document.getElementById("toast-container");
+      const el = document.createElement("div");
+      el.className = `toast ${type}`;
+      el.innerHTML = `<span class="toast-icon">${icons[type]}</span><span class="toast-msg">${esc(message)}</span>`;
+      container.appendChild(el);
+      setTimeout(() => el.remove(), 4000);
+    }
+
+    // ── Action fetch ───────────────────────────────────────
+    async function postAction(btn, orderId, action) {
+      const body = new FormData();
+
+      if (action === "assign-courier") {
+        const sel = document.querySelector(`[data-courier="${orderId}"]`);
+        if (!sel || !sel.value) {
+          showToast("Выберите курьера из списка.", "warning");
+          return;
+        }
+        body.append("courier_id", sel.value);
+      }
+
+      btn.classList.add("loading");
+      btn.disabled = true;
+
       try {
-        const response = await fetch(`/crm/orders/${orderId}/${action}/`, {
+        const res = await fetch(`/crm/orders/${orderId}/${action}/`, {
           method: "POST",
           credentials: "same-origin",
-          headers: {
-            "X-CSRFToken": csrfToken,
-            "X-Requested-With": "XMLHttpRequest",
-          },
+          headers: { "X-CSRFToken": csrfToken, "X-Requested-With": "XMLHttpRequest" },
           body,
         });
-        const payload = await response.json().catch(() => ({}));
 
-        if (!response.ok) {
-          showToast(payload.detail || "Действие не выполнено.");
+        const payload = await res.json().catch(() => ({}));
+
+        if (!res.ok) {
+          showToast(payload.detail || "Действие не выполнено.", "error");
           return;
         }
 
         if (Array.isArray(payload.orders)) {
           state.orders = payload.orders;
           render();
+          showToast("Статус обновлён", "success");
         } else {
-          window.location.reload();
+          location.reload();
         }
-      } catch (error) {
-        showToast("Нет связи с сервером.");
+      } catch (_) {
+        showToast("Нет связи с сервером. Проверьте интернет.", "error");
       } finally {
-        button.disabled = false;
+        btn.classList.remove("loading");
+        btn.disabled = false;
       }
     }
 
-    document.addEventListener("click", (event) => {
-      const button = event.target.closest("[data-action]");
-      if (!button) {
-        return;
-      }
-      event.preventDefault();
-      event.stopPropagation();
-      postAction(button, button.dataset.order, button.dataset.action);
+    // ── Delegate clicks ────────────────────────────────────
+    document.addEventListener("click", e => {
+      const btn = e.target.closest("[data-action]");
+      if (!btn) return;
+      e.preventDefault();
+      postAction(btn, btn.dataset.order, btn.dataset.action);
     });
 
-    function connectSocket() {
-      const protocol = window.location.protocol === "https:" ? "wss" : "ws";
-      const socket = new WebSocket(`${protocol}://${window.location.host}/ws/crm/orders/`);
+    // ── WebSocket ──────────────────────────────────────────
+    let reconnectTimer = null;
 
-      socket.addEventListener("open", () => setLive("live", "is-online"));
-      socket.addEventListener("close", () => {
-        setLive("offline", "is-offline");
-        window.setTimeout(connectSocket, 2500);
-      });
-      socket.addEventListener("error", () => setLive("ошибка", "is-offline"));
-      socket.addEventListener("message", (event) => {
-        const payload = JSON.parse(event.data);
-        if (payload.type === "orders.snapshot") {
-          state.orders = payload.orders;
-          render();
-        }
-      });
+    function setLiveState(text, cls) {
+      const badge = document.getElementById("live-badge");
+      const label = document.getElementById("live-text");
+      badge.className = `live-badge ${cls}`;
+      label.textContent = text;
     }
 
+    function connectSocket() {
+      const proto = location.protocol === "https:" ? "wss" : "ws";
+      const ws = new WebSocket(`${proto}://${location.host}/ws/crm/orders/`);
+
+      ws.onopen = () => {
+        setLiveState("live", "online");
+        if (reconnectTimer) { clearTimeout(reconnectTimer); reconnectTimer = null; }
+      };
+
+      ws.onclose = () => {
+        setLiveState("нет связи", "offline");
+        reconnectTimer = setTimeout(connectSocket, 3000);
+      };
+
+      ws.onerror = () => setLiveState("ошибка", "offline");
+
+      ws.onmessage = e => {
+        const payload = JSON.parse(e.data);
+        if (payload.type !== "orders.snapshot") return;
+
+        const prevIds = new Set(state.orders.map(o => o.id));
+        state.orders = payload.orders;
+        const newIds = new Set(
+          payload.orders.filter(o => !prevIds.has(o.id) && o.status === "accepted").map(o => o.id)
+        );
+        render(newIds);
+      };
+    }
+
+    // ── Init ───────────────────────────────────────────────
     render();
     connectSocket();
   </script>

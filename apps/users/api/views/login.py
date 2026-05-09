@@ -8,6 +8,7 @@ from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from apps.users.api.serializers import SendCodeSerializer, VerifyCodeSerializer
+from apps.users.api.throttles import SendCodeThrottle, VerifyCodeThrottle
 from arabica.api_utils import api_error
 from apps.users.utils.twilio import send_verification_code, check_verification_code
 
@@ -22,6 +23,8 @@ logger = logging.getLogger(__name__)
     responses={200: OpenApiResponse(description="Код отправлен"), 400: SendCodeSerializer},
 )
 class SendCodeView(APIView):
+    throttle_classes = [SendCodeThrottle]
+
     def post(self, request, *args, **kwargs):
         serializer = SendCodeSerializer(data=request.data)
 
@@ -43,7 +46,7 @@ class SendCodeView(APIView):
             logger.exception("Twilio send-code failed for %s", phone_number)
             return api_error(
                 code="verification_unavailable",
-                message=f"Не удалось отправить код подтверждения: {exc}",
+                message="Не удалось отправить код подтверждения. Попробуйте позже.",
                 status_code=status.HTTP_502_BAD_GATEWAY,
             )
 
@@ -64,6 +67,8 @@ class SendCodeView(APIView):
     responses={200: OpenApiResponse(description="Код подтвержден"), 400: OpenApiResponse(description="Ошибка проверки")},
 )
 class VerifyCodeView(APIView):
+    throttle_classes = [VerifyCodeThrottle]
+
     def post(self, request, *args, **kwargs):
         serializer = VerifyCodeSerializer(data=request.data)
         if not serializer.is_valid():
@@ -83,7 +88,7 @@ class VerifyCodeView(APIView):
             logger.exception("Twilio verify-code failed for %s", phone_number)
             return api_error(
                 code="verification_unavailable",
-                message=f"Сервис проверки кода временно недоступен: {exc}",
+                message="Сервис проверки кода временно недоступен. Попробуйте позже.",
                 status_code=status.HTTP_502_BAD_GATEWAY,
             )
 

@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(wsl -e find /home/aman/arabica_coffee -maxdepth 2 -not -path \"*/.git/*\" -not -path \"*/__pycache__/*\")",
+      "Bash(wsl -d Ubuntu-24.04 find /home/aman/arabica_coffee -maxdepth 2 -not -path \"*/.git/*\" -not -path \"*/__pycache__/*\")",
+      "Bash(wsl -d Ubuntu-24.04 -- bash -c \"find /home/aman/arabica_coffee -maxdepth 2 ! -path '*/.git/*' ! -path '*/__pycache__/*' | sort | head -80\")"
+    ]
+  }
+}

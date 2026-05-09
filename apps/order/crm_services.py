@@ -1,5 +1,7 @@
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
+from django.db.models import Sum
+from django.utils import timezone
 
 from apps.order.models import CafeMembership, Order
 
@@ -26,7 +28,7 @@ def get_cafe_couriers(cafe):
     return (
         CafeMembership.objects.select_related("user")
         .filter(cafe=cafe, role=CafeMembership.Role.COURIER)
-        .order_by("user__phone_number")
+        .order_by("user__first_name", "user__phone_number")
     )
 
 
@@ -39,7 +41,30 @@ def get_active_orders(cafe):
     )
 
 
+def get_today_stats(cafe):
+    today = timezone.now().date()
+    delivered_qs = Order.objects.filter(
+        cafe=cafe,
+        status="delivered",
+        delivered_at__date=today,
+    )
+    revenue = delivered_qs.aggregate(total=Sum("total_price"))["total"] or 0
+    return {
+        "delivered_count": delivered_qs.count(),
+        "revenue_today": int(revenue),
+    }
+
+
 def serialize_order(order):
+    courier_name = ""
+    if order.courier:
+        parts = [order.courier.first_name, order.courier.last_name]
+        courier_name = " ".join(p for p in parts if p) or order.courier.phone_number
+
+    customer_name = " ".join(
+        p for p in [order.user.first_name, order.user.last_name] if p
+    )
+
     return {
         "id": order.id,
         "status": order.status,
@@ -47,20 +72,20 @@ def serialize_order(order):
         "delivery_type": order.delivery_type,
         "delivery_type_label": order.get_delivery_type_display(),
         "address": order.address or "",
-        "delivery_time": order.delivery_time.strftime("%H:%M")
-        if order.delivery_time
-        else "",
+        "delivery_time": order.delivery_time.strftime("%H:%M") if order.delivery_time else "",
         "total_price": str(order.total_price),
         "created_at": order.created_at.strftime("%H:%M"),
+        "created_at_iso": order.created_at.isoformat(),
+        "ready_at_iso": order.ready_at.isoformat() if order.ready_at else None,
+        "on_the_way_at_iso": order.on_the_way_at.isoformat() if order.on_the_way_at else None,
         "customer": {
             "phone_number": order.user.phone_number,
-            "name": " ".join(
-                part for part in [order.user.first_name, order.user.last_name] if part
-            ),
+            "name": customer_name,
         },
         "courier": {
             "id": order.courier_id,
             "phone_number": order.courier.phone_number if order.courier else "",
+            "name": courier_name,
         },
         "items": [
             {
@@ -86,7 +111,5 @@ def broadcast_cafe_orders(cafe_id):
 
     async_to_sync(channel_layer.group_send)(
         f"cafe_orders_{cafe_id}",
-        {
-            "type": "orders.changed",
-        },
+        {"type": "orders.changed"},
     )

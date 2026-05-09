@@ -145,13 +145,17 @@ class UpdateCartItemView(APIView):
         serializer.is_valid(raise_exception=True)
 
         cart, _ = Cart.objects.get_or_create(user=request.user)
-        cart_item = get_object_or_404(CartItem, id=pk, cart=cart)
-
-        cart_item.quantity = serializer.validated_data.get(
-            "quantity", cart_item.quantity
-        )
-        cart_item.comment = serializer.validated_data.get("comment", cart_item.comment)
-        cart_item.save()
+        with transaction.atomic():
+            cart_item = get_object_or_404(
+                CartItem.objects.select_for_update(), id=pk, cart=cart
+            )
+            cart_item.quantity = serializer.validated_data.get(
+                "quantity", cart_item.quantity
+            )
+            cart_item.comment = serializer.validated_data.get(
+                "comment", cart_item.comment
+            )
+            cart_item.save()
 
         cache.delete(f"user_cart_{request.user.id}")
 
@@ -173,13 +177,15 @@ class DeleteCartItemView(APIView):
 
     def delete(self, request, pk):
         cart, _ = Cart.objects.get_or_create(user=request.user)
-        cart_item = get_object_or_404(CartItem, id=pk, cart=cart)
-
-        if cart_item.quantity > 1:
-            cart_item.quantity -= 1
-            cart_item.save(update_fields=["quantity"])
-        else:
-            cart_item.delete()
+        with transaction.atomic():
+            cart_item = get_object_or_404(
+                CartItem.objects.select_for_update(), id=pk, cart=cart
+            )
+            if cart_item.quantity > 1:
+                cart_item.quantity -= 1
+                cart_item.save(update_fields=["quantity"])
+            else:
+                cart_item.delete()
 
         cache.delete(f"user_cart_{request.user.id}")
 
