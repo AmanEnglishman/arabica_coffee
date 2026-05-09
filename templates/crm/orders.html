@@ -277,6 +277,34 @@
     .new-banner.show { display: block; }
     @keyframes bIn { from{opacity:0;transform:translateX(-50%) scale(.85)} to{opacity:1;transform:translateX(-50%) scale(1)} }
 
+    /* ── REPORTS ────────────────────────────────────────────── */
+    .rep-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+    .rep-kpi  { background: var(--card); border: 1px solid var(--brd); border-radius: var(--r); padding: 14px 16px; }
+    .rep-kpi-val   { font-size: 22px; font-weight: 800; color: var(--acc); line-height: 1; }
+    .rep-kpi-label { font-size: 11px; color: var(--txt3); margin-top: 4px; }
+
+    .rep-section { background: var(--card); border: 1px solid var(--brd); border-radius: var(--r); overflow: hidden; }
+    .rep-hd { padding: 11px 14px; border-bottom: 1px solid var(--brd2); font-size: 13px; font-weight: 700; }
+    .rep-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .rep-table th { padding: 8px 12px; text-align: left; color: var(--txt3); font-weight: 600; font-size: 11px; border-bottom: 1px solid var(--brd2); background: #FDFAF6; }
+    .rep-table td { padding: 8px 12px; border-bottom: 1px solid var(--brd2); }
+    .rep-table tr:last-child td { border-bottom: none; }
+    .rep-table tr:hover td { background: #FEFCF9; }
+    .rep-bar-wrap { display: flex; align-items: center; gap: 8px; }
+    .rep-bar { height: 6px; background: var(--acc); border-radius: 3px; min-width: 2px; transition: width .3s; }
+    .rep-hours { display: grid; grid-template-columns: repeat(24, 1fr); gap: 2px; align-items: end; height: 60px; padding: 10px 14px 8px; }
+    .rep-hour-bar { background: var(--acc-l); border-radius: 2px 2px 0 0; min-height: 4px; position: relative; }
+    .rep-hour-bar.has-data { background: var(--acc); cursor: pointer; }
+    .rep-hour-bar:hover::after { content: attr(data-tip); position: absolute; bottom: calc(100% + 4px); left: 50%; transform: translateX(-50%); background: #333; color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 4px; white-space: nowrap; z-index: 10; }
+    .rep-hours-labels { display: grid; grid-template-columns: repeat(24, 1fr); gap: 2px; padding: 0 14px 10px; }
+    .rep-hour-lbl { font-size: 8px; color: var(--txt3); text-align: center; }
+
+    /* History pagination */
+    .hist-pages { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 12px 0 4px; flex-shrink: 0; }
+    .pag-btn { min-height: 30px; min-width: 30px; padding: 0 8px; border: 1px solid var(--brd); border-radius: var(--rs); background: var(--card); color: var(--txt2); font-size: 12px; font-weight: 600; cursor: pointer; }
+    .pag-btn.active { background: var(--acc); color: #fff; border-color: var(--acc); }
+    .pag-btn:disabled { opacity: .4; cursor: not-allowed; }
+
     /* ── RESPONSIVE ─────────────────────────────────────────── */
     @media (max-width: 1050px) { .board { grid-template-columns: repeat(2, 1fr); } }
     @media (max-width: 700px)  {
@@ -319,6 +347,7 @@
     <button class="tab active" data-tab="orders">📋 Заказы <span class="tb-badge" id="tb-orders">{{ active_count }}</span></button>
     <button class="tab" data-tab="history">📦 История <span class="tb-badge" id="tb-history">{{ delivered_today }}</span></button>
     <button class="tab" data-tab="couriers">🚴 Курьеры <span class="tb-badge" id="tb-couriers">—</span></button>
+    <button class="tab" data-tab="reports">📊 Отчёт</button>
   </div>
 
   <!-- PANEL: ORDERS -->
@@ -386,6 +415,17 @@
       <button class="btn btn-ghost btn-sm" id="cour-refresh">↻ Обновить</button>
     </div>
     <div class="cour-grid" id="cour-grid">
+      <div class="p-loader"><div class="p-loader-spin"></div>Загрузка…</div>
+    </div>
+  </div>
+
+  <!-- PANEL: REPORTS -->
+  <div class="panel" id="panel-reports">
+    <div class="cour-bar">
+      <h2>📊 Отчёт за сегодня</h2>
+      <button class="btn btn-ghost btn-sm" id="rep-refresh">↻ Обновить</button>
+    </div>
+    <div style="flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:16px;" id="rep-body">
       <div class="p-loader"><div class="p-loader-spin"></div>Загрузка…</div>
     </div>
   </div>
@@ -690,24 +730,60 @@
 
     // ══ HISTORY TAB ═════════════════════════════════════════
 
-    async function loadHistory() {
+    const HP = { page: 1, total_pages: 1, count: 0, revenue: 0 };
+
+    async function loadHistory(page = 1) {
       const list = document.getElementById('hist-list');
       list.innerHTML = '<div class="p-loader"><div class="p-loader-spin"></div>Загрузка…</div>';
       try {
-        const res = await fetch('/crm/api/history/', { credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+        const res = await fetch(`/crm/api/history/?page=${page}&page_size=20`, {
+          credentials: 'same-origin',
+          headers: { 'X-Requested-With': 'XMLHttpRequest' },
+        });
         const text = await res.text();
         let data = {};
         try { data = JSON.parse(text); } catch(_) {}
-        if (!res.ok) { list.innerHTML = `<div class="p-loader" style="color:var(--red)">${esc(data.detail || 'Ошибка')}</div>`; return; }
+        if (!res.ok) {
+          list.innerHTML = `<div class="p-loader" style="color:var(--red)">${esc(data.detail || 'Ошибка')}</div>`;
+          return;
+        }
         S.history = data.orders;
+        HP.page        = data.page;
+        HP.total_pages = data.total_pages;
+        HP.count       = data.count;
+        HP.revenue     = data.revenue;
         document.getElementById('h-count').textContent = data.count;
         document.getElementById('h-rev').textContent   = (data.revenue || 0).toLocaleString('ru-RU') + ' сом';
         document.getElementById('tb-history').textContent = data.count;
         renderHistory();
+        renderPagination();
       } catch(_) {
         list.innerHTML = '<div class="p-loader" style="color:var(--red)">Ошибка загрузки</div>';
       }
     }
+
+    function renderPagination() {
+      let el = document.getElementById('hist-pages');
+      if (!el) {
+        el = document.createElement('div');
+        el.id = 'hist-pages';
+        el.className = 'hist-pages';
+        document.getElementById('panel-history').appendChild(el);
+      }
+      if (HP.total_pages <= 1) { el.innerHTML = ''; return; }
+      const pages = [];
+      for (let p = 1; p <= HP.total_pages; p++) {
+        pages.push(`<button class="pag-btn ${p === HP.page ? 'active' : ''}"
+          onclick="loadHistory(${p})" ${p === HP.page ? 'disabled' : ''}>${p}</button>`);
+      }
+      el.innerHTML =
+        `<button class="pag-btn" onclick="loadHistory(${HP.page-1})" ${HP.page<=1?'disabled':''}>←</button>`
+        + pages.join('')
+        + `<button class="pag-btn" onclick="loadHistory(${HP.page+1})" ${HP.page>=HP.total_pages?'disabled':''}>→</button>`;
+    }
+
+    // expose for pagination buttons
+    window.loadHistory = loadHistory;
 
     function renderHistory() {
       const q = (document.getElementById('hist-search').value || '').toLowerCase();
@@ -829,6 +905,117 @@
     document.getElementById('cour-refresh').addEventListener('click', () => {
       S.cStatus = null; loadCouriers();
     });
+
+    // ══ REPORTS TAB ══════════════════════════════════════════
+
+    async function loadReports() {
+      const body = document.getElementById('rep-body');
+      body.innerHTML = '<div class="p-loader"><div class="p-loader-spin"></div>Загрузка…</div>';
+      try {
+        const res = await fetch('/crm/api/reports/', { credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+        const text = await res.text();
+        let data = {};
+        try { data = JSON.parse(text); } catch(_) {}
+        if (!res.ok) { body.innerHTML = `<div class="p-loader" style="color:var(--red)">${esc(data.detail||'Ошибка')}</div>`; return; }
+        renderReports(data);
+      } catch(_) {
+        body.innerHTML = '<div class="p-loader" style="color:var(--red)">Ошибка загрузки</div>';
+      }
+    }
+
+    function renderReports(d) {
+      const s = d.summary || {};
+      const fmt = n => (n||0).toLocaleString('ru-RU');
+
+      // KPI cards
+      const kpis = `
+        <div class="rep-grid">
+          <div class="rep-kpi"><div class="rep-kpi-val">${fmt(s.total_orders)}</div><div class="rep-kpi-label">Всего заказов</div></div>
+          <div class="rep-kpi"><div class="rep-kpi-val">${fmt(s.delivered_orders)}</div><div class="rep-kpi-label">Выдано</div></div>
+          <div class="rep-kpi"><div class="rep-kpi-val">${fmt(s.cancelled_orders)}</div><div class="rep-kpi-label">Отменено</div></div>
+          <div class="rep-kpi"><div class="rep-kpi-val">${fmt(s.pickup_orders)}</div><div class="rep-kpi-label">Самовывоз</div></div>
+          <div class="rep-kpi"><div class="rep-kpi-val">${fmt(s.delivery_orders)}</div><div class="rep-kpi-label">Доставка</div></div>
+          <div class="rep-kpi"><div class="rep-kpi-val" style="font-size:16px">${fmt(s.total_revenue)} с</div><div class="rep-kpi-label">Выручка</div></div>
+        </div>`;
+
+      // Revenue by hour chart
+      const maxRev = Math.max(...(d.revenue_by_hour||[]).map(h => h.revenue||0), 1);
+      const hours = Array.from({length:24}, (_,i) => {
+        const h = (d.revenue_by_hour||[]).find(x => x.hour === i);
+        const pct = h ? Math.max(8, Math.round((h.revenue/maxRev)*100)) : 0;
+        const tip = h ? `${i}:00 — ${fmt(h.revenue)} с (${h.orders} зак.)` : `${i}:00`;
+        return `<div class="rep-hour-bar ${h?'has-data':''}" style="height:${pct}%" data-tip="${tip}"></div>`;
+      }).join('');
+      const hourLabels = Array.from({length:24}, (_,i) =>
+        `<div class="rep-hour-lbl">${i%3===0?i:''}</div>`).join('');
+
+      const hourChart = `
+        <div class="rep-section">
+          <div class="rep-hd">Выручка по часам</div>
+          <div class="rep-hours">${hours}</div>
+          <div class="rep-hours-labels">${hourLabels}</div>
+        </div>`;
+
+      // Top products
+      const maxProd = Math.max(...(d.top_products||[]).map(p => p.revenue||0), 1);
+      const topRows = (d.top_products||[]).map((p,i) => {
+        const pct = Math.round((p.revenue/maxProd)*100);
+        return `<tr>
+          <td style="color:var(--txt3);width:24px">${i+1}</td>
+          <td style="font-weight:600">${esc(p.product__title)}</td>
+          <td style="text-align:center">${p.qty}</td>
+          <td>
+            <div class="rep-bar-wrap">
+              <div class="rep-bar" style="width:${pct}%"></div>
+              <span style="font-weight:700;color:var(--acc);white-space:nowrap">${fmt(p.revenue)} с</span>
+            </div>
+          </td>
+        </tr>`;
+      }).join('') || '<tr><td colspan="4" style="text-align:center;color:var(--txt3);padding:20px">Нет данных</td></tr>';
+
+      const topTable = `
+        <div class="rep-section">
+          <div class="rep-hd">Топ продуктов</div>
+          <table class="rep-table">
+            <thead><tr><th>#</th><th>Продукт</th><th>Кол-во</th><th>Выручка</th></tr></thead>
+            <tbody>${topRows}</tbody>
+          </table>
+        </div>`;
+
+      // Courier stats
+      const courRows = (d.courier_stats||[]).map(c => {
+        const name = [c.courier__first_name, c.courier__last_name].filter(Boolean).join(' ') || c.courier__phone_number;
+        return `<tr>
+          <td style="font-weight:600">${esc(name)}</td>
+          <td style="color:var(--txt3)">${esc(c.courier__phone_number)}</td>
+          <td style="text-align:center;font-weight:700">${c.deliveries}</td>
+          <td style="font-weight:700;color:var(--acc)">${fmt(c.revenue)} с</td>
+        </tr>`;
+      }).join('') || '<tr><td colspan="4" style="text-align:center;color:var(--txt3);padding:20px">Нет доставок</td></tr>';
+
+      const courTable = `
+        <div class="rep-section">
+          <div class="rep-hd">Курьеры</div>
+          <table class="rep-table">
+            <thead><tr><th>Имя</th><th>Телефон</th><th>Доставок</th><th>Выручка</th></tr></thead>
+            <tbody>${courRows}</tbody>
+          </table>
+        </div>`;
+
+      document.getElementById('rep-body').innerHTML = kpis + hourChart + topTable + courTable;
+    }
+
+    document.getElementById('rep-refresh').addEventListener('click', loadReports);
+
+    // patch switchTab to load reports lazily
+    const _origSwitch = switchTab;
+    function switchTab(name) {
+      _origSwitch(name);
+      if (name === 'reports') loadReports();
+    }
+    document.querySelectorAll('.tab').forEach(b =>
+      b.onclick = () => switchTab(b.dataset.tab)
+    );
 
     // ══ WEBSOCKET ════════════════════════════════════════════
 

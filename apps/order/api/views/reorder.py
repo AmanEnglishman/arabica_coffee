@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.core.cache import cache
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import OpenApiResponse, extend_schema
@@ -6,105 +8,84 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.cart.api.serializers.cart import CartSerializer
 from apps.cart.models import Cart, CartItem, CartItemOption
 from apps.menu.models import OptionValue
 from apps.order.models.code import Order
-from apps.cart.api.serializers.cart import CartSerializer
 
 
 @extend_schema(
-    summary="Повторить заказ - добавить товары из заказа в корзину",
+    summary="Повторить заказ",
     tags=["Order"],
     responses={
-        200: OpenApiResponse(
-            description="Товары из заказа успешно добавлены в корзину",
-            response=CartSerializer
-        ),
-        403: OpenApiResponse(description="Нет прав доступа"),
+        200: OpenApiResponse(description="Товары добавлены в корзину"),
         404: OpenApiResponse(description="Заказ не найден"),
-    }
+    },
+    description=(
+        "Добавляет все активные товары из заказа в текущую корзину. "
+        "Недоступные товары пропускаются с предупреждением. "
+        "Если цена товара изменилась — возвращается предупреждение."
+    ),
 )
 class ReorderView(APIView):
-    """
-    API endpoint для повторного заказа.
-    
-    Добавляет все товары из указанного заказа в корзину пользователя.
-    """
     permission_classes = [IsAuthenticated]
 
     def post(self, request, order_id):
-        """
-        Повторяет заказ, добавляя все товары из заказа в корзину.
-        
-        Args:
-            order_id: ID заказа для повторения
-        """
-        # Получаем заказ (только заказы текущего пользователя)
         order = get_object_or_404(Order, id=order_id, user=request.user)
-        
-        # Получаем или создаем корзину пользователя
         cart, _ = Cart.objects.get_or_create(user=request.user)
-        
-        added_items = []
-        errors = []
-        
-        # Добавляем товары из заказа в корзину
-        for order_item in order.items.all():
-            try:
-                # Проверяем, существует ли продукт и активен ли он
-                if not order_item.product.is_active:
-                    errors.append(f"Продукт '{order_item.product.title}' больше не доступен")
-                    continue
-                
-                # Извлекаем опции из product_options JSON
-                option_ids = []
-                if order_item.product_options and 'options' in order_item.product_options:
-                    for opt in order_item.product_options['options']:
-                        if isinstance(opt, dict) and 'id' in opt:
-                            option_ids.append(opt['id'])
-                
-                # Создаем позицию в корзине
-                cart_item = CartItem.objects.create(
-                    cart=cart,
-                    product=order_item.product,
-                    quantity=order_item.quantity,
-                    comment=""
+
+        added   = []
+        warnings = []
+
+        for order_item in order.items.select_related("product").prefetch_related("product__options").all():
+            product = order_item.product
+
+            if not product.is_active:
+                warnings.append(f"«{product.title}» больше недоступен — пропущен.")
+                continue
+
+            # Проверяем изменение цены
+            original_unit_price = (
+                Decimal(str(order_item.final_price)) / order_item.quantity
+                if order_item.quantity else Decimal("0")
+            )
+            if product.price != original_unit_price:
+                warnings.append(
+                    f"«{product.title}»: цена изменилась с {original_unit_price:.2f} на {product.price:.2f} сом."
                 )
-                
-                # Добавляем опции, если они были в заказе
-                for option_id in option_ids:
-                    try:
-                        option_value = OptionValue.objects.get(id=option_id)
-                        CartItemOption.objects.create(
-                            cart_item=cart_item,
-                            option_value=option_value
-                        )
-                    except OptionValue.DoesNotExist:
-                        # Опция больше не существует, пропускаем
-                        pass
-                
-                added_items.append({
-                    "product": order_item.product.title,
-                    "quantity": order_item.quantity
-                })
-                
-            except Exception as e:
-                errors.append(f"Ошибка при добавлении '{order_item.product.title}': {str(e)}")
-        
-        # Очищаем кэш корзины
+
+            # Восстанавливаем опции
+            option_ids = [
+                opt["id"]
+                for opt in (order_item.product_options.get("options") or [])
+                if isinstance(opt, dict) and "id" in opt
+            ]
+            valid_options = list(
+                OptionValue.objects.filter(
+                    id__in=option_ids,
+                    type__product_links__product=product,
+                ).distinct()
+            ) if option_ids else []
+
+            cart_item = CartItem.objects.create(
+                cart=cart,
+                product=product,
+                quantity=order_item.quantity,
+                comment=order_item.product_options.get("comment", ""),
+            )
+            for opt in valid_options:
+                CartItemOption.objects.create(cart_item=cart_item, option_value=opt)
+
+            added.append({"product": product.title, "quantity": order_item.quantity})
+
         cache.delete(f"user_cart_{request.user.id}")
-        
-        # Получаем обновленную корзину
-        cart.refresh_from_db()
-        cart_serializer = CartSerializer(cart)
-        
-        response_data = {
-            "message": "Товары из заказа успешно добавлены в корзину",
-            "cart": cart_serializer.data,
-            "added_items": added_items
+
+        response = {
+            "message": "Товары добавлены в корзину.",
+            "cart":    CartSerializer(cart).data,
+            "added":   added,
         }
-        
-        if errors:
-            response_data["warnings"] = errors
-        
-        return Response(response_data, status=status.HTTP_200_OK)
+        if warnings:
+            response["warnings"] = warnings
+
+        return Response(response, status=status.HTTP_200_OK)

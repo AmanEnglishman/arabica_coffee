@@ -1,5 +1,6 @@
 from decimal import Decimal, ROUND_DOWN
 
+from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.db import transaction
 from django.shortcuts import get_object_or_404
@@ -19,6 +20,8 @@ from apps.order.models.code import Order, OrderItem
 from apps.order.models import Cafe
 from arabica.api_utils import api_error
 
+User = get_user_model()
+
 
 @extend_schema(
     summary="Создать заказ из корзины",
@@ -26,8 +29,14 @@ from arabica.api_utils import api_error
     request=OrderCreateSerializer,
     responses={
         201: OrderSerializer,
-        400: OpenApiResponse(description="Пустая корзина или ошибка валидации."),
+        400: OpenApiResponse(description="Корзина пуста или ошибка валидации"),
+        404: OpenApiResponse(description="Кафе не найдено или неактивно"),
     },
+    description=(
+        "Создаёт заказ на основе текущей корзины пользователя. "
+        "После создания корзина очищается, а пользователю начисляются бонусные баллы. "
+        "Для доставки обязателен параметр `address`."
+    ),
 )
 class CreateOrderView(APIView):
     permission_classes = [IsAuthenticated]
@@ -48,11 +57,26 @@ class CreateOrderView(APIView):
                 status_code=status.HTTP_400_BAD_REQUEST,
             )
 
-        delivery_type = serializer.validated_data.get("delivery_type", "pickup")
-        address = serializer.validated_data.get("address")
-        delivery_time = serializer.validated_data.get("delivery_time")
+        delivery_type    = serializer.validated_data.get("delivery_type", "pickup")
+        address          = serializer.validated_data.get("address")
+        delivery_time    = serializer.validated_data.get("delivery_time")
+        use_bonus_points = serializer.validated_data.get("use_bonus_points", 0)
 
         with transaction.atomic():
+            # Lock user row to safely read/write loyalty_points
+            locked_user = User.objects.select_for_update().get(id=user.id)
+
+            # Validate bonus points request upfront
+            if use_bonus_points > locked_user.loyalty_points:
+                return api_error(
+                    code="insufficient_points",
+                    message=(
+                        f"Недостаточно бонусных баллов. "
+                        f"Доступно: {locked_user.loyalty_points}."
+                    ),
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                )
+
             order = Order.objects.create(
                 user=user,
                 cafe=cafe,
@@ -60,47 +84,47 @@ class CreateOrderView(APIView):
                 address=address,
                 delivery_time=delivery_time,
                 total_price=Decimal("0.00"),
+                bonus_spent=0,
             )
 
             total_price = Decimal("0.00")
-            bonus_total = Decimal("0.00")
+            bonus_earned = Decimal("0.00")
 
-            # Add items from cart to order
             for cart_item in cart.items.all():
                 item_price = Decimal(cart_item.get_total_price())
-
                 options = [
                     {"id": opt.option_value.id, "value": str(opt.option_value)}
                     for opt in cart_item.options.all()
                 ]
-
                 OrderItem.objects.create(
                     order=order,
                     product=cart_item.product,
                     quantity=cart_item.quantity,
-                    product_options={
-                        "options": options,
-                        "comment": cart_item.comment or "",
-                    },
+                    product_options={"options": options, "comment": cart_item.comment or ""},
                     final_price=item_price,
                 )
-
                 total_price += item_price
-
                 bonus_percent = Decimal(str(cart_item.product.bonus_percent or 0))
-                bonus_for_item = (item_price * bonus_percent) / Decimal("100")
-                bonus_total += bonus_for_item
+                bonus_earned += (item_price * bonus_percent) / Decimal("100")
+
+            # Apply bonus discount (1 point = 1 som, cannot exceed total)
+            bonus_spent = 0
+            if use_bonus_points > 0:
+                bonus_spent  = min(use_bonus_points, int(total_price))
+                total_price  = max(Decimal("0.00"), total_price - Decimal(str(bonus_spent)))
+                locked_user.loyalty_points -= bonus_spent
 
             order.total_price = total_price
-            order.save()
+            order.bonus_spent = bonus_spent
+            order.save(update_fields=["total_price", "bonus_spent"])
 
-            if bonus_total > 0:
-                user.loyalty_points += int(
-                    bonus_total.quantize(Decimal("1"), rounding=ROUND_DOWN)
-                )
-                user.save(update_fields=["loyalty_points"])
+            # Accrue earned bonus points (only on amount actually paid)
+            earned_int = int(bonus_earned.quantize(Decimal("1"), rounding=ROUND_DOWN))
+            if earned_int > 0:
+                locked_user.loyalty_points += earned_int
 
-            # Clear user's cart and cache
+            locked_user.save(update_fields=["loyalty_points"])
+
             cart.items.all().delete()
             cache.delete(f"user_cart_{user.id}")
 

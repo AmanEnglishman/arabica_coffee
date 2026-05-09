@@ -5,6 +5,9 @@ from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
+from django.db.models import Count
+from django.db.models.functions import ExtractHour
+
 from apps.order.crm_services import (
     get_active_orders,
     get_cafe_couriers,
@@ -79,13 +82,29 @@ def crm_history_api(request):
         return error
 
     qs = get_completed_orders_today(membership.cafe)
+    total_count = qs.count()
     revenue = qs.aggregate(total=Sum("total_price"))["total"] or 0
+
+    # Pagination
+    try:
+        page      = max(1, int(request.GET.get("page", 1)))
+        page_size = min(50, max(5, int(request.GET.get("page_size", 20))))
+    except (ValueError, TypeError):
+        page, page_size = 1, 20
+
+    offset = (page - 1) * page_size
+    page_qs = qs[offset: offset + page_size]
+    total_pages = max(1, -(-total_count // page_size))  # ceil division
 
     return JsonResponse({
         "ok": True,
-        "orders": [serialize_completed_order(o) for o in qs],
-        "count": qs.count(),
+        "orders": [serialize_completed_order(o) for o in page_qs],
+        "count": total_count,
         "revenue": int(revenue),
+        "page": page,
+        "page_size": page_size,
+        "total_pages": total_pages,
+        "has_next": page < total_pages,
     })
 
 
@@ -189,3 +208,65 @@ def crm_order_action_view(request, order_id, action):
         return _orders_payload(membership.cafe)
 
     return JsonResponse({"detail": f"Неизвестное действие: {action}."}, status=404)
+
+
+# ── API: reports ───────────────────────────────────────────────────────────────
+
+def crm_reports_api(request):
+    membership, error = _get_membership(request)
+    if error:
+        return error
+
+    today = timezone.now().date()
+    delivered_qs = get_completed_orders_today(membership.cafe)
+    all_today = Order.objects.filter(cafe=membership.cafe, created_at__date=today)
+
+    revenue = delivered_qs.aggregate(total=Sum("total_price"))["total"] or 0
+
+    from apps.order.models.code import OrderItem
+    top_products = list(
+        OrderItem.objects.filter(order__in=delivered_qs)
+        .values("product__title")
+        .annotate(qty=Sum("quantity"), revenue=Sum("final_price"))
+        .order_by("-revenue")[:10]
+    )
+
+    revenue_by_hour = list(
+        delivered_qs
+        .annotate(hour=ExtractHour("delivered_at"))
+        .values("hour")
+        .annotate(revenue=Sum("total_price"), orders=Count("id"))
+        .order_by("hour")
+    )
+
+    accepted_by_hour = list(
+        all_today
+        .annotate(hour=ExtractHour("created_at"))
+        .values("hour")
+        .annotate(orders=Count("id"))
+        .order_by("hour")
+    )
+
+    courier_stats = list(
+        delivered_qs.filter(delivery_type="delivery", courier__isnull=False)
+        .values("courier__id", "courier__first_name", "courier__last_name", "courier__phone_number")
+        .annotate(deliveries=Count("id"), revenue=Sum("total_price"))
+        .order_by("-deliveries")
+    )
+
+    return JsonResponse({
+        "ok": True,
+        "date": str(today),
+        "summary": {
+            "total_orders":     all_today.count(),
+            "delivered_orders": delivered_qs.count(),
+            "cancelled_orders": all_today.filter(status="cancelled").count(),
+            "pickup_orders":    delivered_qs.filter(delivery_type="pickup").count(),
+            "delivery_orders":  delivered_qs.filter(delivery_type="delivery").count(),
+            "total_revenue":    float(revenue),
+        },
+        "top_products":     top_products,
+        "revenue_by_hour":  revenue_by_hour,
+        "accepted_by_hour": accepted_by_hour,
+        "courier_stats":    courier_stats,
+    })

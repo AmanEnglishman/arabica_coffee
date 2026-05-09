@@ -14,6 +14,7 @@ SECRET_KEY = config(
 INSTALLED_APPS = [
     "daphne",
     "jazzmin",
+    "modeltranslation",
     "channels",
     "rest_framework",
     "rest_framework_simplejwt",
@@ -26,6 +27,7 @@ INSTALLED_APPS = [
     "apps.order.apps.OrderConfig",
     "apps.news.apps.NewsConfig",
     "apps.promotions.apps.PromotionsConfig",
+    "apps.bonus.apps.BonusConfig",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -38,6 +40,7 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "corsheaders.middleware.CorsMiddleware",
+    "arabica.middleware.LanguageQueryParamMiddleware",
     "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",

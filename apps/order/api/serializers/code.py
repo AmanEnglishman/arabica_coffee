@@ -4,32 +4,23 @@ from apps.order.models.code import Order, OrderItem
 
 
 class OrderCreateSerializer(serializers.Serializer):
-    """
-    Request payload for order creation.
-    """
-
-    cafe_id = serializers.IntegerField(required=True)
-    delivery_type = serializers.ChoiceField(
-        choices=Order.DELIVERY_TYPE_CHOICES, default="pickup"
-    )
-    address = serializers.CharField(
-        required=False, allow_blank=True, allow_null=True, max_length=500
-    )
+    cafe_id = serializers.IntegerField()
+    delivery_type = serializers.ChoiceField(choices=Order.DELIVERY_TYPE_CHOICES, default="pickup")
+    address = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=500)
     delivery_time = serializers.TimeField(required=False, allow_null=True)
+    use_bonus_points = serializers.IntegerField(
+        required=False, default=0, min_value=0,
+        help_text="Количество бонусных баллов для списания (1 балл = 1 сом скидки).",
+    )
 
     def validate_cafe_id(self, value):
         if not Cafe.objects.filter(id=value, is_active=True).exists():
-            raise serializers.ValidationError(
-                "Кафе не найдено или не активно."
-            )
+            raise serializers.ValidationError("Кафе не найдено или не активно.")
         return value
 
     def validate(self, attrs):
-        # Require address when delivery is selected
         if attrs.get("delivery_type") == "delivery" and not attrs.get("address"):
-            raise serializers.ValidationError(
-                {"address": "Адрес обязателен для доставки."}
-            )
+            raise serializers.ValidationError({"address": "Адрес обязателен для доставки."})
         return attrs
 
 
@@ -57,6 +48,7 @@ class OrderSerializer(serializers.ModelSerializer):
             "address",
             "delivery_time",
             "total_price",
+            "bonus_spent",
             "created_at",
             "items",
         )

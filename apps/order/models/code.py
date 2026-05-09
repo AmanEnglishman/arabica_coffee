@@ -10,6 +10,7 @@ class Order(models.Model):
         ("ready", "Заказ готов"),
         ("on_the_way", "Курьер в пути"),
         ("delivered", "Заказ доставлен"),
+        ("cancelled", "Заказ отменён"),
     ]
 
     DELIVERY_TYPE_CHOICES = [
@@ -36,7 +37,8 @@ class Order(models.Model):
     delivery_type = models.CharField(max_length=10, choices=DELIVERY_TYPE_CHOICES)
     address = models.TextField(blank=True, null=True)  # Только для доставки
     delivery_time = models.TimeField(blank=True, null=True)  # Время доставки
-    total_price = models.DecimalField(max_digits=10, decimal_places=2)  # Итоговая цена
+    total_price = models.DecimalField(max_digits=10, decimal_places=2)
+    bonus_spent = models.PositiveIntegerField(default=0)  # Бонусные баллы, потраченные на заказ
     created_at = models.DateTimeField(auto_now_add=True)
     ready_at = models.DateTimeField(blank=True, null=True)
     on_the_way_at = models.DateTimeField(blank=True, null=True)
