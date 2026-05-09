@@ -14,16 +14,20 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "gender",
             "birth_date",
             "avatar",
+            "qr_code",
             "loyalty_points",
             "coffee_cups",
+            "is_courier",
             "is_phone_verified",
             "phone_verified_at",
         )
         read_only_fields = (
             "id",
             "phone_number",
+            "qr_code",
             "loyalty_points",
             "coffee_cups",
+            "is_courier",
             "is_phone_verified",
             "phone_verified_at",
         )
