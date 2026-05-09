@@ -832,6 +832,15 @@
           </div>`;
       }
 
+      if (order.status === "on_the_way" && order.delivery_type === "delivery") {
+        return `
+          <button class="btn btn-success btn-full"
+                  data-action="mark-delivery-delivered" data-order="${order.id}">
+            <span class="spinner"></span>
+            <span class="btn-text">✅ Доставлен</span>
+          </button>`;
+      }
+
       return "";
     }
 

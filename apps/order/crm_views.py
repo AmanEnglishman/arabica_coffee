@@ -115,19 +115,49 @@ def crm_order_action_view(request, order_id, action):
         return _orders_payload(membership.cafe)
 
     if action == "assign-courier":
+        if order.status != "ready" or order.delivery_type != "delivery":
+            return JsonResponse(
+                {
+                    "detail": (
+                        "Курьера нельзя назначить. "
+                        f"Статус: {order.get_status_display()}, "
+                        f"тип: {order.get_delivery_type_display()}."
+                    )
+                },
+                status=400,
+            )
         courier_id = request.POST.get("courier_id")
+        if not courier_id:
+            return JsonResponse({"detail": "Выберите курьера."}, status=400)
         courier_membership = get_object_or_404(
             CafeMembership,
             user_id=courier_id,
             role=CafeMembership.Role.COURIER,
             cafe=membership.cafe,
         )
-        if order.status != "ready" or order.delivery_type != "delivery":
-            return JsonResponse({"detail": "Курьера нельзя назначить."}, status=400)
         order.courier = courier_membership.user
         order.status = "on_the_way"
         order.on_the_way_at = timezone.now()
         order.save(update_fields=["courier", "status", "on_the_way_at", "updated_at"])
+        return _orders_payload(membership.cafe)
+
+    if action == "mark-delivery-delivered":
+        if order.status == "delivered":
+            return _orders_payload(membership.cafe)
+        if order.status != "on_the_way" or order.delivery_type != "delivery":
+            return JsonResponse(
+                {
+                    "detail": (
+                        "Нельзя закрыть доставку. "
+                        f"Статус: {order.get_status_display()}, "
+                        f"тип: {order.get_delivery_type_display()}."
+                    )
+                },
+                status=400,
+            )
+        order.status = "delivered"
+        order.delivered_at = timezone.now()
+        order.save(update_fields=["status", "delivered_at", "updated_at"])
         return _orders_payload(membership.cafe)
 
     return JsonResponse({"detail": "Неизвестное действие."}, status=404)
