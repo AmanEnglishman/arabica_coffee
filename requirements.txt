@@ -1,6 +1,7 @@
 asgiref==3.11.1
 async-timeout==5.0.1
 attrs==25.3.0
+celery==5.5.3
 channels==4.3.2
 channels_redis==4.3.0
 daphne==4.2.1

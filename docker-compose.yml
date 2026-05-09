@@ -37,6 +37,9 @@ services:
       - POSTGRES_PORT=5432
       - REDIS_URL=redis://redis:6379/1
       - CHANNEL_REDIS_URL=redis://redis:6379/2
+      - CELERY_BROKER_URL=redis://redis:6379/3
+      - CELERY_RESULT_BACKEND=redis://redis:6379/4
+      - CELERY_TIMEZONE=${CELERY_TIMEZONE:-Asia/Bishkek}
       - SECURE_SSL_REDIRECT=${SECURE_SSL_REDIRECT:-False}
       - SESSION_COOKIE_SECURE=${SESSION_COOKIE_SECURE:-False}
       - CSRF_COOKIE_SECURE=${CSRF_COOKIE_SECURE:-False}
@@ -54,6 +57,75 @@ services:
       - db
       - redis
     command: sh -c "python manage.py collectstatic --noinput && python manage.py migrate && daphne -b 0.0.0.0 -p 8000 arabica.asgi:application"
+
+  celery-worker:
+    image: ${DOCKER_IMAGE:-arabica_coffee-django}
+    build: .
+    container_name: arabica-celery-worker
+    working_dir: /src
+    environment:
+      - DJANGO_ENV=production
+      - SECRET_KEY=${SECRET_KEY}
+      - DEBUG=${DEBUG:-False}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+      - CSRF_TRUSTED_ORIGINS=${CSRF_TRUSTED_ORIGINS}
+      - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_HOST=db
+      - POSTGRES_PORT=5432
+      - REDIS_URL=redis://redis:6379/1
+      - CHANNEL_REDIS_URL=redis://redis:6379/2
+      - CELERY_BROKER_URL=redis://redis:6379/3
+      - CELERY_RESULT_BACKEND=redis://redis:6379/4
+      - CELERY_TIMEZONE=${CELERY_TIMEZONE:-Asia/Bishkek}
+      - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID}
+      - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN}
+      - TWILIO_VERIFY_SERVICE_SID=${TWILIO_VERIFY_SERVICE_SID}
+    volumes:
+      - static_volume:/static
+      - media_volume:/media
+    restart: always
+    depends_on:
+      - db
+      - redis
+    command: celery -A arabica worker --loglevel=info
+
+  celery-beat:
+    image: ${DOCKER_IMAGE:-arabica_coffee-django}
+    build: .
+    container_name: arabica-celery-beat
+    working_dir: /src
+    environment:
+      - DJANGO_ENV=production
+      - SECRET_KEY=${SECRET_KEY}
+      - DEBUG=${DEBUG:-False}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+      - CSRF_TRUSTED_ORIGINS=${CSRF_TRUSTED_ORIGINS}
+      - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_HOST=db
+      - POSTGRES_PORT=5432
+      - REDIS_URL=redis://redis:6379/1
+      - CHANNEL_REDIS_URL=redis://redis:6379/2
+      - CELERY_BROKER_URL=redis://redis:6379/3
+      - CELERY_RESULT_BACKEND=redis://redis:6379/4
+      - CELERY_TIMEZONE=${CELERY_TIMEZONE:-Asia/Bishkek}
+      - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID}
+      - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN}
+      - TWILIO_VERIFY_SERVICE_SID=${TWILIO_VERIFY_SERVICE_SID}
+    volumes:
+      - static_volume:/static
+      - media_volume:/media
+    restart: always
+    depends_on:
+      - db
+      - redis
+      - celery-worker
+    command: celery -A arabica beat --loglevel=info
 
   nginx:
     image: nginx

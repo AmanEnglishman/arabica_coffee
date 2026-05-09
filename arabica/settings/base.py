@@ -135,3 +135,17 @@ TWILIO_AUTH_TOKEN = config(
 TWILIO_VERIFY_SERVICE_SID = config(
     "TWILIO_VERIFY_SERVICE_SID", default=os.environ.get("TWILIO_VERIFY_SERVICE_SID")
 )
+
+CELERY_BROKER_URL = config("CELERY_BROKER_URL", default="redis://localhost:6379/3")
+CELERY_RESULT_BACKEND = config(
+    "CELERY_RESULT_BACKEND", default="redis://localhost:6379/4"
+)
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_TIMEZONE = config("CELERY_TIMEZONE", default="Asia/Bishkek")
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_TIME_LIMIT = config("CELERY_TASK_TIME_LIMIT", default=30 * 60, cast=int)
+CELERY_TASK_SOFT_TIME_LIMIT = config(
+    "CELERY_TASK_SOFT_TIME_LIMIT", default=25 * 60, cast=int
+)
