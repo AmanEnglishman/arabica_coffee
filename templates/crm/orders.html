@@ -480,20 +480,41 @@
 
     function renderItems(items) {
       if (!items.length) return '';
+
+      // Group by product + options + comment
+      const groups = new Map();
+      items.forEach(it => {
+        const opts = it.options.map(o => o.value || o).join(' · ');
+        const key  = `${it.product_title}||${opts}||${it.comment || ''}`;
+        if (groups.has(key)) {
+          const g = groups.get(key);
+          g.qty   += it.quantity;
+          g.price += parseFloat(it.final_price);
+        } else {
+          groups.set(key, {
+            title:   it.product_title,
+            opts,
+            comment: it.comment || '',
+            qty:     it.quantity,
+            price:   parseFloat(it.final_price),
+          });
+        }
+      });
+
+      const rows = [...groups.values()].map(g => `
+        <div class="item-r">
+          <div>
+            <span class="item-name">${esc(g.title)}</span>
+            <span class="item-qty"> × ${g.qty}</span>
+            ${g.opts    ? `<div class="item-meta">📌 ${esc(g.opts)}</div>` : ''}
+            ${g.comment ? `<div class="item-comment">💬 ${esc(g.comment)}</div>` : ''}
+          </div>
+          <span class="item-price">${g.price.toFixed(2)} с</span>
+        </div>`).join('');
+
       return `<div class="items-wrap">
         <div class="items-hd">Состав заказа</div>
-        ${items.map(it => {
-          const opts = it.options.map(o => o.value || o).join(' · ');
-          return `<div class="item-r">
-            <div>
-              <span class="item-name">${esc(it.product_title)}</span>
-              <span class="item-qty"> × ${it.quantity}</span>
-              ${opts ? `<div class="item-meta">📌 ${esc(opts)}</div>` : ''}
-              ${it.comment ? `<div class="item-comment">💬 ${esc(it.comment)}</div>` : ''}
-            </div>
-            <span class="item-price">${esc(it.final_price)} с</span>
-          </div>`;
-        }).join('')}
+        ${rows}
       </div>`;
     }
 
@@ -703,17 +724,27 @@
       list.innerHTML = filtered.map(o => {
         const isDel = o.delivery_type === 'delivery';
         const customer = esc(o.customer.name || o.customer.phone_number);
-        const items = o.items.map(it => {
+        const hGroups = new Map();
+        o.items.forEach(it => {
           const opts = it.options.map(op => op.value || op).join(' · ');
-          return `<div class="h-item-r">
+          const key  = `${it.product_title}||${opts}||${it.comment || ''}`;
+          if (hGroups.has(key)) {
+            const g = hGroups.get(key);
+            g.qty   += it.quantity;
+            g.price += parseFloat(it.final_price);
+          } else {
+            hGroups.set(key, { title: it.product_title, opts, comment: it.comment || '', qty: it.quantity, price: parseFloat(it.final_price) });
+          }
+        });
+        const items = [...hGroups.values()].map(g => `
+          <div class="h-item-r">
             <div>
-              <strong>${esc(it.product_title)}</strong> × ${it.quantity}
-              ${opts ? `<div style="font-size:10px;color:var(--txt3)">${esc(opts)}</div>` : ''}
-              ${it.comment ? `<div style="font-size:10px;color:var(--acc)">💬 ${esc(it.comment)}</div>` : ''}
+              <strong>${esc(g.title)}</strong> × ${g.qty}
+              ${g.opts    ? `<div style="font-size:10px;color:var(--txt3)">${esc(g.opts)}</div>` : ''}
+              ${g.comment ? `<div style="font-size:10px;color:var(--acc)">💬 ${esc(g.comment)}</div>` : ''}
             </div>
-            <span style="font-weight:700;color:var(--acc)">${esc(it.final_price)} с</span>
-          </div>`;
-        }).join('');
+            <span style="font-weight:700;color:var(--acc)">${g.price.toFixed(2)} с</span>
+          </div>`).join('');
         return `<div class="hcard">
           <div class="hcard-row" onclick="this.closest('.hcard').classList.toggle('open')">
             <span class="hcard-time">${esc(o.delivered_at)}</span>
