@@ -1,4 +1,5 @@
 from django.contrib.auth.decorators import login_required
+from django.db.models import Sum
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
@@ -7,14 +8,19 @@ from django.views.decorators.http import require_POST
 from apps.order.crm_services import (
     get_active_orders,
     get_cafe_couriers,
+    get_completed_orders_today,
+    get_couriers_with_status,
     get_staff_membership,
     get_today_stats,
     serialize_active_orders,
+    serialize_completed_order,
 )
 from apps.order.models import CafeMembership, Order
 
 
-def _staff_membership_or_error(request):
+# ── Helpers ────────────────────────────────────────────────────────────────────
+
+def _get_membership(request):
     membership = get_staff_membership(request.user)
     if membership is None:
         return None, JsonResponse({"detail": "Нет доступа."}, status=403)
@@ -22,14 +28,14 @@ def _staff_membership_or_error(request):
 
 
 def _orders_payload(cafe):
-    return JsonResponse(
-        {
-            "ok": True,
-            "orders": serialize_active_orders(cafe),
-            "active_count": get_active_orders(cafe).count(),
-        }
-    )
+    return JsonResponse({
+        "ok": True,
+        "orders": serialize_active_orders(cafe),
+        "active_count": get_active_orders(cafe).count(),
+    })
 
+
+# ── Page view ──────────────────────────────────────────────────────────────────
 
 @login_required(login_url="/admin/login/")
 def crm_orders_view(request):
@@ -38,56 +44,82 @@ def crm_orders_view(request):
         return render(request, "crm/forbidden.html", status=403)
 
     cafe = membership.cafe
-    couriers = get_cafe_couriers(cafe)
     stats = get_today_stats(cafe)
-    staff_name = " ".join(
-        p for p in [request.user.first_name, request.user.last_name] if p
-    ) or request.user.phone_number
-
-    return render(
-        request,
-        "crm/orders.html",
-        {
-            "cafe": cafe,
-            "orders": serialize_active_orders(cafe),
-            "couriers": [
-                {
-                    "id": c.user_id,
-                    "phone_number": c.user.phone_number,
-                    "name": " ".join(
-                        p for p in [c.user.first_name, c.user.last_name] if p
-                    ) or c.user.phone_number,
-                }
-                for c in couriers
-            ],
-            "active_count": get_active_orders(cafe).count(),
-            "delivered_today": stats["delivered_count"],
-            "revenue_today": stats["revenue_today"],
-            "staff_name": staff_name,
-        },
+    staff_name = (
+        " ".join(p for p in [request.user.first_name, request.user.last_name] if p)
+        or request.user.phone_number
     )
 
+    return render(request, "crm/orders.html", {
+        "cafe": cafe,
+        "orders": serialize_active_orders(cafe),
+        "couriers": [
+            {
+                "id": c.user_id,
+                "name": " ".join(p for p in [c.user.first_name, c.user.last_name] if p)
+                        or c.user.phone_number,
+                "phone_number": c.user.phone_number,
+            }
+            for c in get_cafe_couriers(cafe)
+        ],
+        "active_count": get_active_orders(cafe).count(),
+        "delivered_today": stats["delivered_count"],
+        "revenue_today": stats["revenue_today"],
+        "staff_name": staff_name,
+    })
+
+
+# ── API: history ───────────────────────────────────────────────────────────────
+
+@login_required(login_url="/admin/login/")
+def crm_history_api(request):
+    membership, error = _get_membership(request)
+    if error:
+        return error
+
+    qs = get_completed_orders_today(membership.cafe)
+    revenue = qs.aggregate(total=Sum("total_price"))["total"] or 0
+
+    return JsonResponse({
+        "ok": True,
+        "orders": [serialize_completed_order(o) for o in qs],
+        "count": qs.count(),
+        "revenue": int(revenue),
+    })
+
+
+# ── API: couriers status ───────────────────────────────────────────────────────
+
+@login_required(login_url="/admin/login/")
+def crm_couriers_api(request):
+    membership, error = _get_membership(request)
+    if error:
+        return error
+
+    return JsonResponse({
+        "ok": True,
+        "couriers": get_couriers_with_status(membership.cafe),
+    })
+
+
+# ── Order actions ──────────────────────────────────────────────────────────────
 
 @login_required(login_url="/admin/login/")
 @require_POST
 def crm_order_action_view(request, order_id, action):
-    membership, error = _staff_membership_or_error(request)
+    membership, error = _get_membership(request)
     if error:
         return error
 
     order = get_object_or_404(Order, id=order_id, cafe=membership.cafe)
 
+    # accepted → ready
     if action == "mark-ready":
         if order.status == "ready":
             return _orders_payload(membership.cafe)
         if order.status != "accepted":
             return JsonResponse(
-                {
-                    "detail": (
-                        "Заказ нельзя отметить готовым. "
-                        f"Текущий статус: {order.get_status_display()}."
-                    )
-                },
+                {"detail": f"Нельзя отметить готовым. Статус: {order.get_status_display()}."},
                 status=400,
             )
         order.status = "ready"
@@ -95,6 +127,7 @@ def crm_order_action_view(request, order_id, action):
         order.save(update_fields=["status", "ready_at", "updated_at"])
         return _orders_payload(membership.cafe)
 
+    # ready + pickup → delivered
     if action == "mark-delivered":
         if order.status == "delivered":
             return _orders_payload(membership.cafe)
@@ -102,7 +135,7 @@ def crm_order_action_view(request, order_id, action):
             return JsonResponse(
                 {
                     "detail": (
-                        "Заказ нельзя выдать. "
+                        f"Нельзя выдать. "
                         f"Статус: {order.get_status_display()}, "
                         f"тип: {order.get_delivery_type_display()}."
                     )
@@ -114,12 +147,13 @@ def crm_order_action_view(request, order_id, action):
         order.save(update_fields=["status", "delivered_at", "updated_at"])
         return _orders_payload(membership.cafe)
 
+    # ready + delivery → on_the_way (assign courier)
     if action == "assign-courier":
         if order.status != "ready" or order.delivery_type != "delivery":
             return JsonResponse(
                 {
                     "detail": (
-                        "Курьера нельзя назначить. "
+                        f"Нельзя назначить курьера. "
                         f"Статус: {order.get_status_display()}, "
                         f"тип: {order.get_delivery_type_display()}."
                     )
@@ -141,6 +175,7 @@ def crm_order_action_view(request, order_id, action):
         order.save(update_fields=["courier", "status", "on_the_way_at", "updated_at"])
         return _orders_payload(membership.cafe)
 
+    # on_the_way + delivery → delivered (staff closes delivery)
     if action == "mark-delivery-delivered":
         if order.status == "delivered":
             return _orders_payload(membership.cafe)
@@ -148,7 +183,7 @@ def crm_order_action_view(request, order_id, action):
             return JsonResponse(
                 {
                     "detail": (
-                        "Нельзя закрыть доставку. "
+                        f"Нельзя закрыть доставку. "
                         f"Статус: {order.get_status_display()}, "
                         f"тип: {order.get_delivery_type_display()}."
                     )

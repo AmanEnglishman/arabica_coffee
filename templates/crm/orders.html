@@ -5,1076 +5,1086 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>CRM — {{ cafe.name }}</title>
   <style>
-    :root {
-      --bg: #f0ebe3;
-      --surface: #faf7f2;
-      --surface-2: #fff;
-      --border: #e0d5c8;
-      --border-soft: #ede6db;
-      --text: #1a110a;
-      --text-2: #5c4b3c;
-      --text-3: #9c8878;
-      --accent: #8b3a1a;
-      --accent-h: #6e2c12;
-      --accent-light: #f5e8e1;
-      --green: #1a6641;
-      --green-bg: #e4f4ec;
-      --amber: #7a5000;
-      --amber-bg: #fef3d0;
-      --blue: #1d4f82;
-      --blue-bg: #deeaf8;
-      --red: #8b1a1a;
-      --red-bg: #fde8e8;
-      --shadow-sm: 0 1px 3px rgba(60,35,15,.08);
-      --shadow-md: 0 4px 16px rgba(60,35,15,.10);
-      --shadow-lg: 0 8px 32px rgba(60,35,15,.14);
-      --r: 10px;
-      --r-sm: 6px;
-    }
-
+    /* ══ RESET & BASE ══════════════════════════════════════════════════════════ */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    button, select, input { font: inherit; }
+    a { color: inherit; text-decoration: none; }
+
+    :root {
+      --c-bg:        #EFEBE4;
+      --c-surface:   #FAF7F2;
+      --c-card:      #FFFFFF;
+      --c-border:    #DDD5C8;
+      --c-border-2:  #EDE6DB;
+      --c-text:      #1C110B;
+      --c-text-2:    #5A4636;
+      --c-text-3:    #9A867A;
+      --c-accent:    #7B3314;
+      --c-accent-h:  #5E2409;
+      --c-accent-l:  #F5EAE4;
+      --c-green:     #1A6B3C;
+      --c-green-bg:  #E3F4EC;
+      --c-amber:     #7A4D00;
+      --c-amber-bg:  #FEF3D0;
+      --c-blue:      #1A4D82;
+      --c-blue-bg:   #DDE9F8;
+      --c-red:       #8B1A1A;
+      --c-red-bg:    #FDE8E8;
+      --c-purple:    #5A2A7A;
+      --c-purple-bg: #EEE5F8;
+      --shadow-s:    0 1px 3px rgba(50,25,10,.08);
+      --shadow-m:    0 4px 16px rgba(50,25,10,.10);
+      --shadow-l:    0 10px 36px rgba(50,25,10,.14);
+      --r:           10px;
+      --r-s:         6px;
+    }
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
       font-size: 14px;
-      background: var(--bg);
-      color: var(--text);
+      line-height: 1.5;
+      background: var(--c-bg);
+      color: var(--c-text);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
     }
 
-    button, select, input { font: inherit; }
-
-    /* ── TOPBAR ── */
+    /* ══ TOPBAR ════════════════════════════════════════════════════════════════ */
     .topbar {
       position: sticky;
       top: 0;
-      z-index: 20;
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      padding: 0 24px;
-      height: 60px;
-      background: var(--accent);
-      color: #fff;
-      box-shadow: var(--shadow-md);
-    }
-
-    .topbar-brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-shrink: 0;
-    }
-
-    .topbar-logo {
-      width: 32px;
-      height: 32px;
-      border-radius: 8px;
-      background: rgba(255,255,255,.18);
-      display: grid;
-      place-items: center;
-      font-size: 18px;
-    }
-
-    .topbar-title {
-      font-size: 16px;
-      font-weight: 700;
-      letter-spacing: -.2px;
-    }
-
-    .topbar-cafe {
-      font-size: 12px;
-      opacity: .75;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      max-width: 220px;
-    }
-
-    .topbar-sep { width: 1px; height: 28px; background: rgba(255,255,255,.2); flex-shrink: 0; }
-
-    .topbar-right {
+      z-index: 30;
       display: flex;
       align-items: center;
       gap: 12px;
-      margin-left: auto;
+      padding: 0 20px;
+      height: 56px;
+      background: var(--c-accent);
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(50,15,5,.25);
       flex-shrink: 0;
     }
 
-    .topbar-staff {
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      font-size: 13px;
-      opacity: .9;
+    .tb-logo {
+      width: 34px; height: 34px;
+      border-radius: 8px;
+      background: rgba(255,255,255,.18);
+      display: grid; place-items: center;
+      font-size: 18px; flex-shrink: 0;
     }
 
-    .topbar-staff-avatar {
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
+    .tb-cafe { font-size: 15px; font-weight: 700; }
+    .tb-addr { font-size: 11px; opacity: .7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px; }
+
+    .tb-sep { width: 1px; height: 26px; background: rgba(255,255,255,.2); flex-shrink: 0; margin: 0 4px; }
+
+    .tb-right { display: flex; align-items: center; gap: 10px; margin-left: auto; flex-shrink: 0; }
+
+    .tb-staff { display: flex; align-items: center; gap: 7px; font-size: 13px; opacity: .9; }
+    .tb-avatar {
+      width: 28px; height: 28px; border-radius: 50%;
       background: rgba(255,255,255,.22);
-      display: grid;
-      place-items: center;
-      font-size: 12px;
-      font-weight: 700;
+      display: grid; place-items: center;
+      font-size: 11px; font-weight: 800;
     }
 
-    .topbar-clock {
-      font-size: 15px;
-      font-weight: 600;
-      font-variant-numeric: tabular-nums;
-      opacity: .95;
+    .tb-clock { font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+    .ws-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 4px 10px; border-radius: 999px;
+      background: rgba(255,255,255,.14);
+      font-size: 11px; font-weight: 600;
     }
-
-    .live-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 5px 10px;
-      border-radius: 999px;
-      background: rgba(255,255,255,.15);
-      font-size: 12px;
-      font-weight: 600;
+    .ws-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: #FCD34D; transition: background .3s;
     }
+    .ws-badge.online  .ws-dot { background: #4ADE80; animation: pulse 2s infinite; }
+    .ws-badge.offline .ws-dot { background: #F87171; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
 
-    .live-dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: #fbbf24;
-      transition: background .3s;
-    }
-
-    .live-badge.online .live-dot  { background: #4ade80; animation: pulse 2s infinite; }
-    .live-badge.offline .live-dot { background: #f87171; }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50%       { opacity: .4; }
-    }
-
-    /* ── STATS BAR ── */
-    .statsbar {
+    /* ══ TABS ══════════════════════════════════════════════════════════════════ */
+    .tabbar {
       display: flex;
       align-items: stretch;
+      gap: 2px;
+      padding: 10px 20px 0;
+      background: var(--c-accent);
+      flex-shrink: 0;
+    }
+
+    .tab {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 9px 18px;
+      border-radius: var(--r) var(--r) 0 0;
+      background: rgba(255,255,255,.12);
+      color: rgba(255,255,255,.75);
+      font-size: 13px; font-weight: 600;
+      cursor: pointer; border: none;
+      transition: background .15s, color .15s;
+      user-select: none;
+    }
+    .tab:hover { background: rgba(255,255,255,.2); color: #fff; }
+    .tab.active { background: var(--c-bg); color: var(--c-accent); }
+
+    .tab-badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 20px; height: 20px;
+      padding: 0 5px; border-radius: 999px;
+      font-size: 11px; font-weight: 800;
+      background: rgba(255,255,255,.25);
+      color: inherit;
+    }
+    .tab.active .tab-badge { background: var(--c-accent-l); color: var(--c-accent); }
+
+    /* ══ TAB PANELS ════════════════════════════════════════════════════════════ */
+    .panel { display: none; flex: 1; flex-direction: column; }
+    .panel.active { display: flex; }
+
+    /* ══ STATS BAR ═════════════════════════════════════════════════════════════ */
+    .statsbar {
+      display: flex;
       gap: 0;
-      padding: 0 24px;
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
+      background: var(--c-surface);
+      border-bottom: 1px solid var(--c-border);
       overflow-x: auto;
+      flex-shrink: 0;
     }
 
     .stat {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 12px 20px;
-      border-right: 1px solid var(--border-soft);
-      white-space: nowrap;
-      flex-shrink: 0;
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 18px;
+      border-right: 1px solid var(--c-border-2);
+      white-space: nowrap; flex-shrink: 0;
     }
-
     .stat:last-child { border-right: none; }
 
     .stat-icon {
-      width: 34px;
-      height: 34px;
-      border-radius: 8px;
-      display: grid;
-      place-items: center;
-      font-size: 17px;
-      flex-shrink: 0;
+      width: 32px; height: 32px; border-radius: 8px;
+      display: grid; place-items: center; font-size: 16px;
     }
+    .si-new    { background: var(--c-amber-bg); }
+    .si-ready  { background: var(--c-green-bg); }
+    .si-way    { background: var(--c-blue-bg); }
+    .si-done   { background: #F0EFF8; }
+    .si-rev    { background: var(--c-accent-l); }
 
-    .stat-icon.new     { background: var(--amber-bg); }
-    .stat-icon.ready   { background: var(--green-bg); }
-    .stat-icon.deliver { background: var(--blue-bg); }
-    .stat-icon.done    { background: #f0f0f5; }
-    .stat-icon.revenue { background: var(--accent-light); }
+    .stat-val   { font-size: 18px; font-weight: 800; line-height: 1; }
+    .stat-label { font-size: 11px; color: var(--c-text-3); margin-top: 2px; }
 
-    .stat-info { line-height: 1.2; }
-    .stat-value { font-size: 20px; font-weight: 700; }
-    .stat-label { font-size: 11px; color: var(--text-3); margin-top: 1px; }
-
-    /* ── BOARD ── */
+    /* ══ BOARD ═════════════════════════════════════════════════════════════════ */
     .board {
       display: grid;
-      grid-template-columns: repeat(3, minmax(280px, 1fr));
-      gap: 16px;
-      padding: 16px 24px 28px;
+      grid-template-columns: repeat(3, minmax(270px, 1fr));
+      gap: 14px;
+      padding: 14px 20px 24px;
       align-items: start;
       flex: 1;
     }
 
     .lane {
-      border: 1px solid var(--border);
+      background: var(--c-surface);
+      border: 1px solid var(--c-border);
       border-radius: var(--r);
-      background: var(--surface);
-      box-shadow: var(--shadow-sm);
-      display: flex;
-      flex-direction: column;
+      box-shadow: var(--shadow-s);
     }
 
     .lane-head {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 13px 14px;
-      border-bottom: 1px solid var(--border-soft);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 11px 13px;
+      border-bottom: 1px solid var(--c-border-2);
     }
-
-    .lane-title-wrap { display: flex; align-items: center; gap: 8px; }
-
-    .lane-icon { font-size: 16px; }
-
-    .lane-title { font-size: 14px; font-weight: 700; }
+    .lane-title-row { display: flex; align-items: center; gap: 7px; }
+    .lane-icon { font-size: 15px; }
+    .lane-title { font-size: 13px; font-weight: 700; }
 
     .lane-count {
-      min-width: 26px;
-      padding: 3px 8px;
-      border-radius: 999px;
-      text-align: center;
-      font-size: 12px;
-      font-weight: 700;
-      background: #e8dfd4;
-      color: var(--text-2);
+      min-width: 24px; padding: 2px 7px;
+      border-radius: 999px; text-align: center;
+      font-size: 12px; font-weight: 700;
+      background: #E8DFD4; color: var(--c-text-2);
     }
-
-    .lane[data-lane="accepted"] .lane-count  { background: var(--amber-bg); color: var(--amber); }
-    .lane[data-lane="ready"]    .lane-count  { background: var(--green-bg); color: var(--green); }
-    .lane[data-lane="on_the_way"] .lane-count { background: var(--blue-bg); color: var(--blue); }
+    [data-lane="accepted"]  .lane-count { background: var(--c-amber-bg);  color: var(--c-amber); }
+    [data-lane="ready"]     .lane-count { background: var(--c-green-bg);  color: var(--c-green); }
+    [data-lane="on_the_way"].lane-count { background: var(--c-blue-bg);   color: var(--c-blue); }
 
     .lane-body {
-      padding: 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      min-height: 120px;
+      padding: 9px; display: flex; flex-direction: column;
+      gap: 9px; min-height: 100px;
     }
 
-    /* ── EMPTY STATE ── */
-    .empty {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      min-height: 110px;
-      border: 1.5px dashed var(--border);
-      border-radius: var(--r-sm);
-      color: var(--text-3);
-      font-size: 13px;
-      text-align: center;
-      padding: 20px;
-    }
-
-    .empty-icon { font-size: 26px; opacity: .5; }
-
-    /* ── ORDER CARD ── */
-    .order-card {
-      border: 1px solid var(--border);
+    /* ══ ORDER CARD ════════════════════════════════════════════════════════════ */
+    .ocard {
+      background: var(--c-card);
+      border: 1px solid var(--c-border);
       border-radius: var(--r);
-      background: var(--surface-2);
-      box-shadow: var(--shadow-sm);
+      box-shadow: var(--shadow-s);
       overflow: hidden;
-      transition: box-shadow .2s, border-color .2s;
-      animation: slideIn .25s ease;
+      animation: slideIn .22s ease;
+      transition: box-shadow .2s;
     }
+    .ocard:hover { box-shadow: var(--shadow-m); }
 
-    @keyframes slideIn {
-      from { opacity: 0; transform: translateY(-6px); }
-      to   { opacity: 1; transform: translateY(0); }
+    @keyframes slideIn { from{opacity:0;transform:translateY(-5px)} to{opacity:1;transform:translateY(0)} }
+
+    .ocard.urgent {
+      border-color: #F87171;
+      box-shadow: 0 0 0 2px rgba(248,113,113,.22);
+      animation: urgentPulse 2.5s ease infinite;
     }
-
-    .order-card:hover { box-shadow: var(--shadow-md); }
-
-    .order-card.urgent {
-      border-color: #f87171;
-      box-shadow: 0 0 0 2px rgba(248,113,113,.2), var(--shadow-sm);
-      animation: urgentPulse 2.5s infinite;
-    }
-
     @keyframes urgentPulse {
-      0%, 100% { box-shadow: 0 0 0 2px rgba(248,113,113,.2), var(--shadow-sm); }
-      50%       { box-shadow: 0 0 0 4px rgba(248,113,113,.35), var(--shadow-sm); }
+      0%,100% { box-shadow: 0 0 0 2px rgba(248,113,113,.22); }
+      50%      { box-shadow: 0 0 0 4px rgba(248,113,113,.38); }
     }
 
-    /* ── CARD HEADER ── */
-    .card-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 11px 13px 9px;
-      border-bottom: 1px solid var(--border-soft);
+    .ocard-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 12px 8px;
+      border-bottom: 1px solid var(--c-border-2);
+    }
+    .ocard-id-row { display: flex; align-items: center; gap: 7px; }
+    .ocard-id { font-size: 15px; font-weight: 800; color: var(--c-accent); }
+
+    .pill {
+      display: inline-flex; align-items: center; gap: 3px;
+      padding: 2px 7px; border-radius: 999px;
+      font-size: 11px; font-weight: 600;
+    }
+    .pill-delivery { background: var(--c-blue-bg);   color: var(--c-blue); }
+    .pill-pickup   { background: var(--c-amber-bg);  color: var(--c-amber); }
+    .pill-timer    { background: var(--c-green-bg);  color: var(--c-green); font-variant-numeric: tabular-nums; }
+    .pill-timer.warn  { background: var(--c-amber-bg); color: var(--c-amber); }
+    .pill-timer.alert { background: var(--c-red-bg);   color: var(--c-red); }
+
+    .ocard-body { padding: 9px 12px; display: flex; flex-direction: column; gap: 7px; }
+
+    .irow {
+      display: flex; align-items: flex-start; gap: 7px;
+      font-size: 12px; color: var(--c-text-2);
+      padding-bottom: 6px; border-bottom: 1px solid var(--c-border-2);
+    }
+    .irow:last-child { border-bottom: none; padding-bottom: 0; }
+    .irow-icon { flex-shrink: 0; font-size: 13px; margin-top: 1px; }
+    .irow-lbl  { font-size: 10px; color: var(--c-text-3); }
+    .irow-val  { font-weight: 600; color: var(--c-text); font-size: 13px; }
+
+    .items-block { margin-top: 2px; }
+    .items-hd { font-size: 10px; color: var(--c-text-3); text-transform: uppercase; letter-spacing: .4px; margin-bottom: 5px; }
+    .item-r {
+      display: flex; justify-content: space-between; gap: 8px;
+      font-size: 12px; padding: 4px 0;
+      border-bottom: 1px solid var(--c-border-2);
+    }
+    .item-r:last-child { border-bottom: none; }
+    .item-name { font-weight: 600; }
+    .item-qty  { color: var(--c-text-3); }
+    .item-opts { font-size: 10px; color: var(--c-text-3); margin-top: 1px; }
+    .item-price { font-weight: 700; color: var(--c-accent); white-space: nowrap; }
+
+    .ocard-total {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 7px 0 0; margin-top: 2px;
+      border-top: 1px solid var(--c-border-2);
+    }
+    .ocard-total-lbl   { font-size: 11px; color: var(--c-text-3); }
+    .ocard-total-price { font-size: 16px; font-weight: 800; color: var(--c-accent); }
+
+    .ocard-actions {
+      padding: 9px 12px 11px;
+      border-top: 1px solid var(--c-border-2);
+      background: #FDF9F5;
+      display: flex; flex-direction: column; gap: 7px;
     }
 
-    .card-id-row { display: flex; align-items: center; gap: 8px; }
-
-    .card-id {
-      font-size: 16px;
-      font-weight: 800;
-      color: var(--accent);
-    }
-
-    .card-type-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      padding: 2px 7px;
-      border-radius: 999px;
-      font-size: 11px;
-      font-weight: 600;
-    }
-
-    .card-type-badge.delivery { background: var(--blue-bg); color: var(--blue); }
-    .card-type-badge.pickup   { background: var(--amber-bg); color: var(--amber); }
-
-    .card-timer {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      font-size: 12px;
-      font-weight: 700;
-      font-variant-numeric: tabular-nums;
-      padding: 3px 8px;
-      border-radius: 999px;
-      background: var(--green-bg);
-      color: var(--green);
-    }
-
-    .card-timer.warn  { background: var(--amber-bg); color: var(--amber); }
-    .card-timer.alert { background: var(--red-bg);   color: var(--red); }
-
-    /* ── CARD BODY ── */
-    .card-body { padding: 10px 13px; }
-
-    .info-row {
-      display: flex;
-      align-items: flex-start;
-      gap: 7px;
-      padding: 4px 0;
-      color: var(--text-2);
-      font-size: 13px;
-      line-height: 1.4;
-    }
-
-    .info-row:not(:last-child) { border-bottom: 1px solid var(--border-soft); }
-
-    .info-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
-
-    .info-label { color: var(--text-3); font-size: 11px; }
-    .info-val   { font-weight: 600; color: var(--text); }
-
-    /* ── ITEMS ── */
-    .items-section {
-      margin: 8px 0 0;
-      border-top: 1px solid var(--border-soft);
-      padding-top: 8px;
-    }
-
-    .items-label {
-      font-size: 11px;
-      color: var(--text-3);
-      text-transform: uppercase;
-      letter-spacing: .5px;
-      margin-bottom: 6px;
-    }
-
-    .item-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 8px;
-      padding: 5px 0;
-      font-size: 13px;
-    }
-
-    .item-row:not(:last-child) { border-bottom: 1px solid var(--border-soft); }
-
-    .item-name { font-weight: 600; color: var(--text); }
-    .item-qty  { color: var(--text-3); }
-    .item-opts { font-size: 11px; color: var(--text-3); margin-top: 2px; }
-    .item-price { font-weight: 700; color: var(--accent); white-space: nowrap; flex-shrink: 0; }
-
-    /* ── CARD TOTAL ── */
-    .card-total {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-top: 8px;
-      padding: 8px 0 0;
-      border-top: 1px solid var(--border-soft);
-    }
-
-    .card-total-label { font-size: 12px; color: var(--text-3); }
-    .card-total-price { font-size: 17px; font-weight: 800; color: var(--accent); }
-
-    /* ── CARD ACTIONS ── */
-    .card-actions {
-      padding: 10px 13px 12px;
-      border-top: 1px solid var(--border-soft);
-      background: #fdf9f5;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .courier-assign-row {
-      display: flex;
-      gap: 8px;
-    }
-
-    .courier-select {
-      flex: 1;
-      min-height: 38px;
-      border: 1px solid var(--border);
-      border-radius: var(--r-sm);
-      padding: 0 10px;
-      background: var(--surface-2);
-      color: var(--text);
-      appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23999' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 10px center;
-      padding-right: 28px;
-    }
-
-    .courier-select:focus { outline: 2px solid var(--accent); border-color: var(--accent); }
-
-    /* ── BUTTONS ── */
+    /* ══ BUTTONS ═══════════════════════════════════════════════════════════════ */
     .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      min-height: 38px;
-      padding: 0 16px;
-      border: none;
-      border-radius: var(--r-sm);
-      font-size: 13px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: background .15s, transform .1s, opacity .15s;
+      position: relative;
+      display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+      min-height: 36px; padding: 0 14px;
+      border: none; border-radius: var(--r-s);
+      font-size: 13px; font-weight: 700;
+      cursor: pointer; user-select: none;
+      transition: background .15s, transform .1s;
       white-space: nowrap;
-      user-select: none;
     }
-
-    .btn:active { transform: scale(.97); }
-    .btn:disabled { opacity: .55; cursor: not-allowed; transform: none; }
-
-    .btn-primary {
-      background: var(--accent);
-      color: #fff;
-    }
-    .btn-primary:hover:not(:disabled) { background: var(--accent-h); }
-
-    .btn-success {
-      background: var(--green);
-      color: #fff;
-    }
-    .btn-success:hover:not(:disabled) { background: #14553a; }
-
-    .btn-blue {
-      background: var(--blue);
-      color: #fff;
-    }
-    .btn-blue:hover:not(:disabled) { background: #163d68; }
-
+    .btn:active:not(:disabled) { transform: scale(.97); }
+    .btn:disabled { opacity: .5; cursor: not-allowed; }
     .btn-full { width: 100%; }
 
-    /* ── SPINNER ── */
-    .spinner {
-      display: none;
-      width: 14px;
-      height: 14px;
-      border: 2px solid rgba(255,255,255,.4);
-      border-top-color: #fff;
-      border-radius: 50%;
-      animation: spin .6s linear infinite;
+    .btn-primary { background: var(--c-accent);  color: #fff; }
+    .btn-primary:hover:not(:disabled) { background: var(--c-accent-h); }
+
+    .btn-success { background: var(--c-green);   color: #fff; }
+    .btn-success:hover:not(:disabled) { background: #145430; }
+
+    .btn-blue    { background: var(--c-blue);    color: #fff; }
+    .btn-blue:hover:not(:disabled)    { background: #133A65; }
+
+    .btn-ghost {
+      background: transparent; color: var(--c-text-2);
+      border: 1px solid var(--c-border);
     }
+    .btn-ghost:hover:not(:disabled) { background: var(--c-bg); }
 
-    @keyframes spin { to { transform: rotate(360deg); } }
+    .btn-sm { min-height: 30px; font-size: 12px; padding: 0 10px; }
 
-    .btn.loading .spinner { display: block; }
-    .btn.loading .btn-text { opacity: 0; position: absolute; }
-
-    /* ── TOASTS ── */
-    .toast-container {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      z-index: 100;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      max-width: min(380px, calc(100vw - 40px));
+    /* spinner inside btn */
+    .spin {
+      display: none; width: 13px; height: 13px;
+      border: 2px solid rgba(255,255,255,.35);
+      border-top-color: #fff; border-radius: 50%;
+      animation: rot .55s linear infinite;
     }
+    @keyframes rot { to { transform: rotate(360deg); } }
+    .btn.loading .spin   { display: block; }
+    .btn.loading .btn-tx { opacity: 0; }
 
-    .toast {
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-      padding: 12px 14px;
+    /* ══ COURIER SELECT ════════════════════════════════════════════════════════ */
+    .courier-row { display: flex; gap: 7px; }
+    .c-select {
+      flex: 1; min-height: 36px;
+      border: 1px solid var(--c-border); border-radius: var(--r-s);
+      padding: 0 28px 0 9px; background: var(--c-card); color: var(--c-text);
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath fill='%23999' d='M5 7L0 2h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 9px center;
+    }
+    .c-select:focus { outline: 2px solid var(--c-accent); border-color: var(--c-accent); }
+
+    /* ══ EMPTY ═════════════════════════════════════════════════════════════════ */
+    .empty {
+      display: flex; flex-direction: column; align-items: center; gap: 5px;
+      min-height: 100px; border: 1.5px dashed var(--c-border);
+      border-radius: var(--r-s); color: var(--c-text-3);
+      font-size: 12px; padding: 18px; text-align: center;
+    }
+    .empty-ico { font-size: 24px; opacity: .45; }
+
+    /* ══ HISTORY PANEL ══════════════════════════════════════════════════════════ */
+    .hist-bar {
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px 20px;
+      background: var(--c-surface);
+      border-bottom: 1px solid var(--c-border);
+      flex-wrap: wrap;
+    }
+    .hist-stats { display: flex; gap: 16px; font-size: 13px; }
+    .hist-stat { display: flex; align-items: center; gap: 5px; color: var(--c-text-2); }
+    .hist-stat strong { color: var(--c-text); font-size: 16px; }
+
+    .search-input {
+      min-height: 34px; padding: 0 10px;
+      border: 1px solid var(--c-border); border-radius: var(--r-s);
+      background: var(--c-card); color: var(--c-text); width: 200px;
+    }
+    .search-input:focus { outline: 2px solid var(--c-accent); border-color: var(--c-accent); }
+
+    .hist-list { flex: 1; overflow-y: auto; padding: 14px 20px; display: flex; flex-direction: column; gap: 8px; }
+
+    .hcard {
+      background: var(--c-card);
+      border: 1px solid var(--c-border);
       border-radius: var(--r);
-      box-shadow: var(--shadow-lg);
-      animation: toastIn .2s ease;
-      font-size: 13px;
-      line-height: 1.4;
+      box-shadow: var(--shadow-s);
+      overflow: hidden;
     }
 
-    @keyframes toastIn {
-      from { opacity: 0; transform: translateX(20px); }
-      to   { opacity: 1; transform: translateX(0); }
-    }
-
-    .toast.error   { background: #fff0f0; border: 1px solid #fca5a5; color: var(--red); }
-    .toast.success { background: #f0faf5; border: 1px solid #86efac; color: var(--green); }
-    .toast.warning { background: #fffbeb; border: 1px solid #fcd34d; color: var(--amber); }
-
-    .toast-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
-    .toast-msg  { flex: 1; }
-
-    /* ── NEW ORDER BANNER ── */
-    .new-order-banner {
-      display: none;
-      position: fixed;
-      top: 70px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 50;
-      padding: 10px 20px;
-      background: var(--amber);
-      color: #fff;
-      border-radius: 999px;
-      font-size: 14px;
-      font-weight: 700;
-      box-shadow: var(--shadow-lg);
-      animation: bounce .4s ease;
+    .hcard-row {
+      display: grid;
+      grid-template-columns: 60px 1fr 1fr auto auto;
+      align-items: center;
+      gap: 12px;
+      padding: 11px 14px;
       cursor: pointer;
     }
+    .hcard-row:hover { background: #FEFCF9; }
 
-    .new-order-banner.show { display: block; }
+    .hcard-time { font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--c-text-3); }
+    .hcard-id   { font-size: 14px; font-weight: 800; color: var(--c-accent); }
+    .hcard-name { font-size: 13px; font-weight: 600; }
+    .hcard-phone { font-size: 11px; color: var(--c-text-3); }
 
-    @keyframes bounce {
-      0%   { transform: translateX(-50%) scale(.8); opacity: 0; }
-      70%  { transform: translateX(-50%) scale(1.05); }
-      100% { transform: translateX(-50%) scale(1); opacity: 1; }
+    .hcard-items { overflow: hidden; display: none; border-top: 1px solid var(--c-border-2); }
+    .hcard.open .hcard-items { display: block; }
+    .hcard-chevron { transition: transform .2s; font-size: 12px; color: var(--c-text-3); }
+    .hcard.open .hcard-chevron { transform: rotate(180deg); }
+
+    .hcard-inner { padding: 10px 14px; }
+    .hcard-item-r {
+      display: flex; justify-content: space-between; gap: 8px;
+      font-size: 12px; padding: 4px 0;
+      border-bottom: 1px solid var(--c-border-2);
+    }
+    .hcard-item-r:last-child { border-bottom: none; }
+    .hcard-total-row {
+      display: flex; justify-content: space-between;
+      padding: 8px 0 2px; font-size: 13px;
+      border-top: 1px solid var(--c-border-2); margin-top: 4px;
+    }
+    .hcard-total-row strong { color: var(--c-accent); font-size: 15px; }
+
+    /* ══ COURIERS PANEL ════════════════════════════════════════════════════════ */
+    .courier-panel-bar {
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px 20px;
+      background: var(--c-surface);
+      border-bottom: 1px solid var(--c-border);
+    }
+    .courier-panel-bar h2 { font-size: 15px; margin-right: auto; }
+
+    .courier-grid {
+      flex: 1; padding: 16px 20px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 14px;
+      align-content: start;
     }
 
-    /* ── MEDIA ── */
-    @media (max-width: 1024px) {
-      .board { grid-template-columns: repeat(2, 1fr); }
+    .ccard {
+      background: var(--c-card);
+      border: 1px solid var(--c-border);
+      border-radius: var(--r);
+      box-shadow: var(--shadow-s);
+      padding: 16px;
+      display: flex; gap: 14px; align-items: flex-start;
     }
 
-    @media (max-width: 680px) {
-      .board { grid-template-columns: 1fr; padding: 12px; }
-      .topbar { padding: 0 14px; }
-      .statsbar { padding: 0 14px; }
-      .topbar-cafe, .topbar-sep, .topbar-staff { display: none; }
-      .stat { padding: 10px 14px; }
-      .stat-value { font-size: 17px; }
+    .ccard-avatar {
+      width: 46px; height: 46px; border-radius: 50%;
+      display: grid; place-items: center;
+      font-size: 16px; font-weight: 800; color: #fff;
+      flex-shrink: 0;
+    }
+    .av-busy { background: var(--c-amber); }
+    .av-free { background: var(--c-green); }
+
+    .ccard-body { flex: 1; min-width: 0; }
+    .ccard-name  { font-size: 14px; font-weight: 700; }
+    .ccard-phone { font-size: 12px; color: var(--c-text-3); }
+
+    .ccard-status { display: flex; align-items: center; gap: 5px; margin-top: 8px; font-size: 12px; font-weight: 600; }
+    .cstatus-busy { color: var(--c-amber); }
+    .cstatus-free { color: var(--c-green); }
+
+    .ccard-order {
+      margin-top: 7px; padding: 7px; border-radius: var(--r-s);
+      background: var(--c-amber-bg); font-size: 11px; line-height: 1.5;
+    }
+    .ccard-order strong { color: var(--c-amber); }
+
+    .ccard-stats { margin-top: 8px; font-size: 11px; color: var(--c-text-3); }
+
+    /* ══ TOAST ═════════════════════════════════════════════════════════════════ */
+    .toast-wrap {
+      position: fixed; bottom: 18px; right: 18px; z-index: 100;
+      display: flex; flex-direction: column; gap: 7px;
+      max-width: min(370px, calc(100vw - 36px));
+    }
+    .toast {
+      display: flex; align-items: flex-start; gap: 9px;
+      padding: 11px 14px; border-radius: var(--r);
+      box-shadow: var(--shadow-l);
+      animation: toastIn .2s ease;
+      font-size: 13px; line-height: 1.4;
+    }
+    @keyframes toastIn { from{opacity:0;transform:translateX(16px)} to{opacity:1;transform:translateX(0)} }
+    .toast.ok   { background: #F0FAF5; border: 1px solid #86EFAC; color: var(--c-green); }
+    .toast.err  { background: #FFF0F0; border: 1px solid #FCA5A5; color: var(--c-red); }
+    .toast.warn { background: #FFFBEB; border: 1px solid #FCD34D; color: var(--c-amber); }
+    .toast-ico  { font-size: 15px; flex-shrink: 0; }
+    .toast-msg  { flex: 1; }
+
+    /* ══ NEW ORDER BANNER ══════════════════════════════════════════════════════ */
+    .new-banner {
+      display: none; position: fixed;
+      top: 68px; left: 50%; transform: translateX(-50%);
+      z-index: 50; padding: 9px 20px;
+      background: var(--c-amber); color: #fff;
+      border-radius: 999px; font-size: 13px; font-weight: 700;
+      box-shadow: var(--shadow-l); cursor: pointer;
+      animation: bannerIn .35s ease;
+    }
+    .new-banner.show { display: block; }
+    @keyframes bannerIn {
+      from { opacity:0; transform: translateX(-50%) scale(.85); }
+      to   { opacity:1; transform: translateX(-50%) scale(1); }
+    }
+
+    /* ══ LOADER ════════════════════════════════════════════════════════════════ */
+    .panel-loader {
+      flex: 1; display: flex; align-items: center; justify-content: center;
+      gap: 10px; color: var(--c-text-3); font-size: 14px;
+    }
+    .panel-loader-spin {
+      width: 20px; height: 20px;
+      border: 2px solid var(--c-border);
+      border-top-color: var(--c-accent);
+      border-radius: 50%; animation: rot .7s linear infinite;
+    }
+
+    /* ══ RESPONSIVE ════════════════════════════════════════════════════════════ */
+    @media (max-width: 1050px) { .board { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 700px)  {
+      .board { grid-template-columns: 1fr; padding: 10px; }
+      .topbar, .hist-bar { padding: 0 12px; }
+      .tb-addr, .tb-sep  { display: none; }
+      .hcard-row { grid-template-columns: 50px 1fr auto; }
+      .hcard-name + .hcard-phone, .hcard-row > .pill { display: none; }
+      .courier-grid { padding: 12px; }
     }
   </style>
 </head>
 <body>
-  {{ orders|json_script:"initial-orders" }}
-  {{ couriers|json_script:"couriers-data" }}
+  {{ orders|json_script:"d-orders" }}
+  {{ couriers|json_script:"d-couriers" }}
   {% csrf_token %}
 
-  <!-- ── TOPBAR ── -->
+  <!-- ══ TOPBAR ════════════════════════════════════════════════════════════════ -->
   <header class="topbar">
-    <div class="topbar-brand">
-      <div class="topbar-logo">☕</div>
-      <div>
-        <div class="topbar-title">Arabica CRM</div>
-        <div class="topbar-cafe">{{ cafe.name }}{% if cafe.address %} · {{ cafe.address }}{% endif %}</div>
-      </div>
+    <div class="tb-logo">☕</div>
+    <div>
+      <div class="tb-cafe">{{ cafe.name }}</div>
+      {% if cafe.address %}<div class="tb-addr">{{ cafe.address }}</div>{% endif %}
     </div>
-
-    <div class="topbar-sep"></div>
-
-    <div class="topbar-staff">
-      <div class="topbar-staff-avatar">{{ staff_name|first|upper }}</div>
+    <div class="tb-sep"></div>
+    <div class="tb-staff">
+      <div class="tb-avatar">{{ staff_name|first|upper }}</div>
       <span>{{ staff_name }}</span>
     </div>
-
-    <div class="topbar-right">
-      <div class="topbar-clock" id="clock">--:--</div>
-      <div class="live-badge" id="live-badge">
-        <div class="live-dot"></div>
-        <span id="live-text">подключение…</span>
-      </div>
+    <div class="tb-right">
+      <span class="tb-clock" id="clock">--:--</span>
+      <span class="ws-badge" id="ws-badge">
+        <span class="ws-dot"></span>
+        <span id="ws-txt">—</span>
+      </span>
     </div>
   </header>
 
-  <!-- ── STATS BAR ── -->
-  <div class="statsbar">
-    <div class="stat">
-      <div class="stat-icon new">🔔</div>
-      <div class="stat-info">
-        <div class="stat-value" id="stat-accepted">0</div>
-        <div class="stat-label">Новые</div>
+  <!-- ══ TABS ══════════════════════════════════════════════════════════════════ -->
+  <div class="tabbar">
+    <button class="tab active" data-tab="orders">
+      📋 Заказы <span class="tab-badge" id="tb-orders">{{ active_count }}</span>
+    </button>
+    <button class="tab" data-tab="history">
+      📦 История <span class="tab-badge" id="tb-history">{{ delivered_today }}</span>
+    </button>
+    <button class="tab" data-tab="couriers">
+      🚴 Курьеры <span class="tab-badge" id="tb-couriers">—</span>
+    </button>
+  </div>
+
+  <!-- ══ PANEL: ORDERS ═════════════════════════════════════════════════════════ -->
+  <div class="panel active" id="panel-orders">
+    <!-- stats bar -->
+    <div class="statsbar">
+      <div class="stat">
+        <div class="stat-icon si-new">🔔</div>
+        <div><div class="stat-val" id="s-accepted">0</div><div class="stat-label">Новые</div></div>
+      </div>
+      <div class="stat">
+        <div class="stat-icon si-ready">✅</div>
+        <div><div class="stat-val" id="s-ready">0</div><div class="stat-label">Готовые</div></div>
+      </div>
+      <div class="stat">
+        <div class="stat-icon si-way">🚴</div>
+        <div><div class="stat-val" id="s-on_the_way">0</div><div class="stat-label">В пути</div></div>
+      </div>
+      <div class="stat">
+        <div class="stat-icon si-done">📦</div>
+        <div><div class="stat-val">{{ delivered_today }}</div><div class="stat-label">Выдано сегодня</div></div>
+      </div>
+      <div class="stat">
+        <div class="stat-icon si-rev">💰</div>
+        <div><div class="stat-val">{{ revenue_today|floatformat:0 }} с</div><div class="stat-label">Выручка</div></div>
       </div>
     </div>
-    <div class="stat">
-      <div class="stat-icon ready">✅</div>
-      <div class="stat-info">
-        <div class="stat-value" id="stat-ready">0</div>
-        <div class="stat-label">Готовые</div>
-      </div>
-    </div>
-    <div class="stat">
-      <div class="stat-icon deliver">🚴</div>
-      <div class="stat-info">
-        <div class="stat-value" id="stat-on_the_way">0</div>
-        <div class="stat-label">В доставке</div>
-      </div>
-    </div>
-    <div class="stat">
-      <div class="stat-icon done">📦</div>
-      <div class="stat-info">
-        <div class="stat-value">{{ delivered_today }}</div>
-        <div class="stat-label">Выдано сегодня</div>
-      </div>
-    </div>
-    <div class="stat">
-      <div class="stat-icon revenue">💰</div>
-      <div class="stat-info">
-        <div class="stat-value">{{ revenue_today|floatformat:0 }} сом</div>
-        <div class="stat-label">Выручка сегодня</div>
-      </div>
+    <!-- kanban -->
+    <div class="board">
+      <section class="lane" data-lane="accepted">
+        <div class="lane-head">
+          <div class="lane-title-row"><span class="lane-icon">🔔</span><span class="lane-title">Новые</span></div>
+          <span class="lane-count" data-cnt="accepted">0</span>
+        </div>
+        <div class="lane-body" data-body="accepted"></div>
+      </section>
+      <section class="lane" data-lane="ready">
+        <div class="lane-head">
+          <div class="lane-title-row"><span class="lane-icon">✅</span><span class="lane-title">Готовые</span></div>
+          <span class="lane-count" data-cnt="ready">0</span>
+        </div>
+        <div class="lane-body" data-body="ready"></div>
+      </section>
+      <section class="lane" data-lane="on_the_way">
+        <div class="lane-head">
+          <div class="lane-title-row"><span class="lane-icon">🚴</span><span class="lane-title">В доставке</span></div>
+          <span class="lane-count" data-cnt="on_the_way">0</span>
+        </div>
+        <div class="lane-body" data-body="on_the_way"></div>
+      </section>
     </div>
   </div>
 
-  <!-- ── BOARD ── -->
-  <main class="board">
-    <section class="lane" data-lane="accepted">
-      <div class="lane-head">
-        <div class="lane-title-wrap">
-          <span class="lane-icon">🔔</span>
-          <span class="lane-title">Новые заказы</span>
-        </div>
-        <span class="lane-count" data-count="accepted">0</span>
+  <!-- ══ PANEL: HISTORY ════════════════════════════════════════════════════════ -->
+  <div class="panel" id="panel-history">
+    <div class="hist-bar">
+      <div class="hist-stats">
+        <div class="hist-stat">Выдано: <strong id="h-count">—</strong></div>
+        <div class="hist-stat">Выручка: <strong id="h-rev">—</strong></div>
       </div>
-      <div class="lane-body" data-body="accepted"></div>
-    </section>
-
-    <section class="lane" data-lane="ready">
-      <div class="lane-head">
-        <div class="lane-title-wrap">
-          <span class="lane-icon">✅</span>
-          <span class="lane-title">Готовые</span>
-        </div>
-        <span class="lane-count" data-count="ready">0</span>
-      </div>
-      <div class="lane-body" data-body="ready"></div>
-    </section>
-
-    <section class="lane" data-lane="on_the_way">
-      <div class="lane-head">
-        <div class="lane-title-wrap">
-          <span class="lane-icon">🚴</span>
-          <span class="lane-title">В доставке</span>
-        </div>
-        <span class="lane-count" data-count="on_the_way">0</span>
-      </div>
-      <div class="lane-body" data-body="on_the_way"></div>
-    </section>
-  </main>
-
-  <!-- ── NEW ORDER BANNER ── -->
-  <div class="new-order-banner" id="new-order-banner">
-    🔔 Новый заказ! Нажмите чтобы прокрутить
+      <input class="search-input" id="hist-search" placeholder="🔍 #номер или телефон" type="search">
+      <button class="btn btn-ghost btn-sm" id="hist-refresh">↻ Обновить</button>
+    </div>
+    <div class="hist-list" id="hist-list">
+      <div class="panel-loader"><div class="panel-loader-spin"></div> Загрузка…</div>
+    </div>
   </div>
 
-  <!-- ── TOASTS ── -->
-  <div class="toast-container" id="toast-container"></div>
+  <!-- ══ PANEL: COURIERS ═══════════════════════════════════════════════════════ -->
+  <div class="panel" id="panel-couriers">
+    <div class="courier-panel-bar">
+      <h2>Курьеры кафе</h2>
+      <button class="btn btn-ghost btn-sm" id="courier-refresh">↻ Обновить</button>
+    </div>
+    <div class="courier-grid" id="courier-grid">
+      <div class="panel-loader"><div class="panel-loader-spin"></div> Загрузка…</div>
+    </div>
+  </div>
+
+  <!-- ══ OVERLAYS ══════════════════════════════════════════════════════════════ -->
+  <div class="new-banner" id="new-banner">🔔 Новый заказ!</div>
+  <div class="toast-wrap" id="toasts"></div>
 
   <script>
-    // ── State ──────────────────────────────────────────────
-    const state = {
-      orders: JSON.parse(document.getElementById("initial-orders").textContent),
-      couriers: JSON.parse(document.getElementById("couriers-data").textContent),
-      prevOrderIds: new Set(),
+  (() => {
+    'use strict';
+
+    // ── Config ────────────────────────────────────────────────────────────────
+    const URGENT = 20, WARN = 10;
+    const STATUSES = ['accepted', 'ready', 'on_the_way'];
+    const csrf = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    // ── State ─────────────────────────────────────────────────────────────────
+    const S = {
+      orders:   JSON.parse(document.getElementById('d-orders').textContent),
+      couriers: JSON.parse(document.getElementById('d-couriers').textContent),
+      history:  null,       // lazy loaded
+      cStatus:  null,       // lazy loaded
+      tab:      'orders',
+      histFilter: '',
     };
 
-    const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
-    const STATUSES = ["accepted", "ready", "on_the_way"];
-    const URGENT_MINUTES = 20;
-    const WARN_MINUTES = 10;
-
-    // ── Clock ──────────────────────────────────────────────
-    function updateClock() {
+    // ── Clock ─────────────────────────────────────────────────────────────────
+    function tick() {
       const now = new Date();
-      document.getElementById("clock").textContent =
-        now.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+      document.getElementById('clock').textContent =
+        now.toLocaleTimeString('ru-RU', { hour:'2-digit', minute:'2-digit' });
     }
-    updateClock();
-    setInterval(updateClock, 5000);
+    tick(); setInterval(tick, 10000);
 
-    // ── Timer helpers ──────────────────────────────────────
-    function elapsedMinutes(isoString) {
-      if (!isoString) return 0;
-      return Math.floor((Date.now() - new Date(isoString).getTime()) / 60000);
-    }
+    // ── Utils ─────────────────────────────────────────────────────────────────
+    const esc = s => String(s ?? '')
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 
-    function formatMinutes(mins) {
-      if (mins < 60) return `${mins} мин`;
-      const h = Math.floor(mins / 60);
-      const m = mins % 60;
-      return m ? `${h} ч ${m} мин` : `${h} ч`;
+    function mins(iso) {
+      if (!iso) return 0;
+      return Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
     }
 
-    function timerClass(mins) {
-      if (mins >= URGENT_MINUTES) return "alert";
-      if (mins >= WARN_MINUTES)   return "warn";
-      return "";
+    function fmtMins(m) {
+      if (m < 60) return `${m} мин`;
+      const h = Math.floor(m/60), r = m%60;
+      return r ? `${h} ч ${r} мин` : `${h} ч`;
     }
 
-    // ── Live timers ────────────────────────────────────────
-    function updateTimers() {
-      document.querySelectorAll("[data-timer-iso]").forEach(el => {
-        const iso = el.dataset.timerIso;
-        const mins = elapsedMinutes(iso);
-        el.textContent = "⏱ " + formatMinutes(mins);
-        el.className = "card-timer " + timerClass(mins);
-        const card = el.closest(".order-card");
-        if (card) card.classList.toggle("urgent", mins >= URGENT_MINUTES);
-      });
+    function timerCls(m) {
+      return m >= URGENT ? 'alert' : m >= WARN ? 'warn' : '';
     }
 
-    setInterval(updateTimers, 30000);
+    function initials(name) {
+      return (name || '?').trim().split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+    }
 
-    // ── Sound ──────────────────────────────────────────────
-    function playNotification() {
+    // ── Sound ─────────────────────────────────────────────────────────────────
+    function beep() {
       try {
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        [0, 0.18].forEach(delay => {
-          const osc = ctx.createOscillator();
-          const gain = ctx.createGain();
-          osc.connect(gain);
-          gain.connect(ctx.destination);
-          osc.frequency.value = 880;
-          osc.type = "sine";
-          gain.gain.setValueAtTime(0, ctx.currentTime + delay);
-          gain.gain.linearRampToValueAtTime(0.25, ctx.currentTime + delay + 0.02);
-          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + 0.35);
-          osc.start(ctx.currentTime + delay);
-          osc.stop(ctx.currentTime + delay + 0.35);
+        [0, 0.2].forEach(d => {
+          const o = ctx.createOscillator(), g = ctx.createGain();
+          o.connect(g); g.connect(ctx.destination);
+          o.frequency.value = 900; o.type = 'sine';
+          g.gain.setValueAtTime(0, ctx.currentTime + d);
+          g.gain.linearRampToValueAtTime(.25, ctx.currentTime + d + .02);
+          g.gain.exponentialRampToValueAtTime(.001, ctx.currentTime + d + .3);
+          o.start(ctx.currentTime + d); o.stop(ctx.currentTime + d + .3);
         });
-      } catch (_) {}
+      } catch(_) {}
     }
 
-    // ── HTML escape ────────────────────────────────────────
-    function esc(v) {
-      return String(v ?? "")
-        .replace(/&/g, "&amp;").replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    // ── Toasts ────────────────────────────────────────────────────────────────
+    function toast(msg, type = 'ok') {
+      const ico = { ok:'✅', err:'❌', warn:'⚠️' }[type];
+      const el = document.createElement('div');
+      el.className = `toast ${type}`;
+      el.innerHTML = `<span class="toast-ico">${ico}</span><span class="toast-msg">${esc(msg)}</span>`;
+      document.getElementById('toasts').append(el);
+      setTimeout(() => el.remove(), 4200);
     }
 
-    // ── Render helpers ─────────────────────────────────────
+    // ── Tabs ──────────────────────────────────────────────────────────────────
+    document.querySelectorAll('.tab').forEach(btn => {
+      btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+    });
+
+    function switchTab(name) {
+      S.tab = name;
+      document.querySelectorAll('.tab').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+      document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id === `panel-${name}`));
+      if (name === 'history' && S.history === null) loadHistory();
+      if (name === 'couriers' && S.cStatus === null) loadCouriers();
+    }
+
+    // ══ ORDERS TAB ═══════════════════════════════════════════════════════════
+
     function renderItems(items) {
-      if (!items.length) return "";
-      const rows = items.map(item => {
-        const opts = item.options.map(o => o.value || o).join(", ");
-        return `
-          <div class="item-row">
+      if (!items.length) return '';
+      return `<div class="items-block">
+        <div class="items-hd">Состав</div>
+        ${items.map(it => {
+          const opts = it.options.map(o => o.value || o).join(', ');
+          return `<div class="item-r">
             <div>
-              <div class="item-name">${esc(item.product_title)} <span class="item-qty">× ${item.quantity}</span></div>
-              ${opts ? `<div class="item-opts">${esc(opts)}</div>` : ""}
+              <span class="item-name">${esc(it.product_title)}</span>
+              <span class="item-qty"> × ${it.quantity}</span>
+              ${opts ? `<div class="item-opts">${esc(opts)}</div>` : ''}
             </div>
-            <div class="item-price">${esc(item.final_price)} сом</div>
+            <span class="item-price">${esc(it.final_price)} с</span>
           </div>`;
-      }).join("");
-      return `<div class="items-section">
-        <div class="items-label">Состав заказа</div>
-        ${rows}
+        }).join('')}
       </div>`;
     }
 
-    function renderActions(order) {
-      if (order.status === "accepted") {
-        return `
-          <button class="btn btn-primary btn-full"
-                  data-action="mark-ready" data-order="${order.id}">
-            <span class="spinner"></span>
-            <span class="btn-text">✅ Готов</span>
-          </button>`;
+    function renderActions(o) {
+      if (o.status === 'accepted') {
+        return `<button class="btn btn-primary btn-full" data-act="mark-ready" data-oid="${o.id}">
+          <span class="spin"></span><span class="btn-tx">✅ Заказ готов</span></button>`;
       }
-
-      if (order.status === "ready" && order.delivery_type === "pickup") {
-        return `
-          <button class="btn btn-success btn-full"
-                  data-action="mark-delivered" data-order="${order.id}">
-            <span class="spinner"></span>
-            <span class="btn-text">📦 Выдать клиенту</span>
-          </button>`;
+      if (o.status === 'ready' && o.delivery_type === 'pickup') {
+        return `<button class="btn btn-success btn-full" data-act="mark-delivered" data-oid="${o.id}">
+          <span class="spin"></span><span class="btn-tx">📦 Выдать клиенту</span></button>`;
       }
-
-      if (order.status === "ready" && order.delivery_type === "delivery") {
-        const opts = state.couriers.map(c =>
-          `<option value="${c.id}">${esc(c.name || c.phone_number)}</option>`
-        ).join("");
-        return `
-          <div class="courier-assign-row">
-            <select class="courier-select" data-courier="${order.id}">
-              <option value="">— Выбрать курьера —</option>
-              ${opts}
-            </select>
-            <button class="btn btn-blue"
-                    data-action="assign-courier" data-order="${order.id}">
-              <span class="spinner"></span>
-              <span class="btn-text">🚴 В путь</span>
-            </button>
-          </div>`;
+      if (o.status === 'ready' && o.delivery_type === 'delivery') {
+        const opts = S.couriers.map(c =>
+          `<option value="${c.id}">${esc(c.name)}</option>`).join('');
+        if (!S.couriers.length) {
+          return `<div style="font-size:12px;color:var(--c-text-3);text-align:center;padding:4px 0">
+            Нет курьеров — добавьте в CafeMembership</div>`;
+        }
+        return `<div class="courier-row">
+          <select class="c-select" data-csel="${o.id}">
+            <option value="">— Выбрать курьера —</option>${opts}
+          </select>
+          <button class="btn btn-blue" data-act="assign-courier" data-oid="${o.id}">
+            <span class="spin"></span><span class="btn-tx">🚴</span></button>
+        </div>`;
       }
-
-      if (order.status === "on_the_way" && order.delivery_type === "delivery") {
-        return `
-          <button class="btn btn-success btn-full"
-                  data-action="mark-delivery-delivered" data-order="${order.id}">
-            <span class="spinner"></span>
-            <span class="btn-text">✅ Доставлен</span>
-          </button>`;
+      if (o.status === 'on_the_way' && o.delivery_type === 'delivery') {
+        return `<button class="btn btn-success btn-full" data-act="mark-delivery-delivered" data-oid="${o.id}">
+          <span class="spin"></span><span class="btn-tx">✅ Доставлен</span></button>`;
       }
-
-      return "";
+      return '';
     }
 
-    function renderCard(order) {
-      const customerDisplay = esc(order.customer.name || order.customer.phone_number);
-      const phone = esc(order.customer.phone_number);
-      const isDelivery = order.delivery_type === "delivery";
-      const mins = elapsedMinutes(order.created_at_iso);
-      const timerCls = timerClass(mins);
-      const isUrgent = mins >= URGENT_MINUTES;
+    function renderCard(o) {
+      const elapsed = mins(o.created_at_iso);
+      const tCls    = timerCls(elapsed);
+      const isUrgent = elapsed >= URGENT;
+      const isDel    = o.delivery_type === 'delivery';
+      const customer = esc(o.customer.name || o.customer.phone_number);
 
-      let timeIso = order.created_at_iso;
-      let timeLabel = "В работе";
-      if (order.status === "on_the_way" && order.on_the_way_at_iso) {
-        timeIso = order.on_the_way_at_iso;
-        timeLabel = "В пути";
-      } else if (order.status === "ready" && order.ready_at_iso) {
-        timeIso = order.ready_at_iso;
-        timeLabel = "Готов";
-      }
-
-      const currentMins = elapsedMinutes(timeIso);
-
-      return `
-        <article class="order-card ${isUrgent ? "urgent" : ""}" data-order-card="${order.id}">
-          <div class="card-header">
-            <div class="card-id-row">
-              <span class="card-id">#${order.id}</span>
-              <span class="card-type-badge ${order.delivery_type}">
-                ${isDelivery ? "🚴 Доставка" : "🏃 Самовывоз"}
-              </span>
-            </div>
-            <div class="card-timer ${timerCls}" data-timer-iso="${esc(order.created_at_iso)}">
-              ⏱ ${formatMinutes(mins)}
+      return `<article class="ocard ${isUrgent ? 'urgent' : ''}" data-card="${o.id}">
+        <div class="ocard-head">
+          <div class="ocard-id-row">
+            <span class="ocard-id">#${o.id}</span>
+            <span class="pill ${isDel ? 'pill-delivery' : 'pill-pickup'}">
+              ${isDel ? '🚴 Доставка' : '🏃 Самовывоз'}
+            </span>
+          </div>
+          <span class="pill pill-timer ${tCls}" data-tiso="${esc(o.created_at_iso)}">⏱ ${fmtMins(elapsed)}</span>
+        </div>
+        <div class="ocard-body">
+          <div class="irow">
+            <span class="irow-icon">👤</span>
+            <div>
+              <div class="irow-lbl">Клиент</div>
+              <div class="irow-val">${customer}</div>
+              <div style="font-size:11px;color:var(--c-text-3)">${esc(o.customer.phone_number)}</div>
             </div>
           </div>
-
-          <div class="card-body">
-            <div class="info-row">
-              <span class="info-icon">👤</span>
-              <div>
-                <div class="info-label">Клиент</div>
-                <div class="info-val">${customerDisplay}</div>
-                <div style="font-size:12px;color:var(--text-3)">${phone}</div>
-              </div>
+          ${isDel ? `<div class="irow">
+            <span class="irow-icon">📍</span>
+            <div>
+              <div class="irow-lbl">Адрес доставки</div>
+              <div class="irow-val">${esc(o.address || 'Не указан')}</div>
+              ${o.delivery_time ? `<div style="font-size:11px;color:var(--c-text-3)">Время: ${esc(o.delivery_time)}</div>` : ''}
             </div>
-
-            ${isDelivery ? `
-            <div class="info-row">
-              <span class="info-icon">📍</span>
-              <div>
-                <div class="info-label">Адрес</div>
-                <div class="info-val">${esc(order.address || "Не указан")}</div>
-                ${order.delivery_time ? `<div style="font-size:12px;color:var(--text-3)">Время: ${esc(order.delivery_time)}</div>` : ""}
-              </div>
-            </div>` : ""}
-
-            <div class="info-row">
-              <span class="info-icon">🕐</span>
-              <div>
-                <div class="info-label">Создан</div>
-                <div class="info-val">${esc(order.created_at)}</div>
-              </div>
-            </div>
-
-            ${order.courier && order.courier.name ? `
-            <div class="info-row">
-              <span class="info-icon">🚴</span>
-              <div>
-                <div class="info-label">Курьер</div>
-                <div class="info-val">${esc(order.courier.name)}</div>
-                <div style="font-size:12px;color:var(--text-3)">${esc(order.courier.phone_number)}</div>
-              </div>
-            </div>` : ""}
-
-            ${renderItems(order.items)}
-
-            <div class="card-total">
-              <span class="card-total-label">${order.items.length} позиций</span>
-              <span class="card-total-price">${esc(order.total_price)} сом</span>
+          </div>` : ''}
+          <div class="irow">
+            <span class="irow-icon">🕐</span>
+            <div>
+              <div class="irow-lbl">Принят</div>
+              <div class="irow-val">${esc(o.created_at)}</div>
             </div>
           </div>
-
-          <div class="card-actions">
-            ${renderActions(order)}
+          ${o.courier && o.courier.name ? `<div class="irow">
+            <span class="irow-icon">🚴</span>
+            <div>
+              <div class="irow-lbl">Курьер</div>
+              <div class="irow-val">${esc(o.courier.name)}</div>
+              <div style="font-size:11px;color:var(--c-text-3)">${esc(o.courier.phone_number)}</div>
+            </div>
+          </div>` : ''}
+          ${renderItems(o.items)}
+          <div class="ocard-total">
+            <span class="ocard-total-lbl">${o.items.length} позиций</span>
+            <span class="ocard-total-price">${esc(o.total_price)} сом</span>
           </div>
-        </article>`;
+        </div>
+        <div class="ocard-actions">${renderActions(o)}</div>
+      </article>`;
     }
 
-    // ── Render board ───────────────────────────────────────
-    function render(newOrderIds) {
-      const grouped = Object.fromEntries(STATUSES.map(s => [s, []]));
-      state.orders.forEach(o => {
-        if (grouped[o.status]) grouped[o.status].push(o);
-      });
+    function renderBoard(newIds) {
+      const grp = Object.fromEntries(STATUSES.map(s => [s, []]));
+      S.orders.forEach(o => { if (grp[o.status]) grp[o.status].push(o); });
 
       STATUSES.forEach(s => {
-        const body = document.querySelector(`[data-body="${s}"]`);
-        const list = grouped[s];
-        document.querySelector(`[data-count="${s}"]`).textContent = list.length;
-        const statEl = document.getElementById(`stat-${s}`);
-        if (statEl) statEl.textContent = list.length;
-
-        body.innerHTML = list.length
-          ? list.map(renderCard).join("")
-          : `<div class="empty"><div class="empty-icon">📭</div>Нет заказов</div>`;
+        const list = grp[s];
+        document.querySelector(`[data-cnt="${s}"]`).textContent = list.length;
+        document.querySelector(`[data-body="${s}"]`).innerHTML =
+          list.length ? list.map(renderCard).join('') :
+          '<div class="empty"><div class="empty-ico">📭</div>Нет заказов</div>';
+        const si = document.getElementById(`s-${s}`);
+        if (si) si.textContent = list.length;
       });
 
+      const total = S.orders.length;
+      document.getElementById('tb-orders').textContent = total;
       updateTimers();
 
-      if (newOrderIds && newOrderIds.size > 0) {
-        showNewOrderBanner();
-        playNotification();
+      if (newIds && newIds.size) { beep(); showBanner(); }
+    }
+
+    function updateTimers() {
+      document.querySelectorAll('[data-tiso]').forEach(el => {
+        const m = mins(el.dataset.tiso);
+        el.textContent = '⏱ ' + fmtMins(m);
+        el.className = `pill pill-timer ${timerCls(m)}`;
+        el.closest('.ocard')?.classList.toggle('urgent', m >= URGENT);
+      });
+    }
+    setInterval(updateTimers, 30000);
+
+    function showBanner() {
+      const b = document.getElementById('new-banner');
+      b.classList.add('show');
+      b.onclick = () => { b.classList.remove('show'); switchTab('orders'); };
+      setTimeout(() => b.classList.remove('show'), 5000);
+    }
+
+    // ── Action fetch ──────────────────────────────────────────────────────────
+    async function doAction(btn, oid, act) {
+      const fd = new FormData();
+      if (act === 'assign-courier') {
+        const sel = document.querySelector(`[data-csel="${oid}"]`);
+        if (!sel?.value) { toast('Выберите курьера', 'warn'); return; }
+        fd.append('courier_id', sel.value);
       }
-    }
-
-    // ── New order banner ───────────────────────────────────
-    function showNewOrderBanner() {
-      const banner = document.getElementById("new-order-banner");
-      banner.classList.add("show");
-      banner.onclick = () => {
-        banner.classList.remove("show");
-        document.querySelector("[data-body='accepted']")?.scrollIntoView({ behavior: "smooth" });
-      };
-      setTimeout(() => banner.classList.remove("show"), 5000);
-    }
-
-    // ── Toasts ─────────────────────────────────────────────
-    function showToast(message, type = "error") {
-      const icons = { error: "❌", success: "✅", warning: "⚠️" };
-      const container = document.getElementById("toast-container");
-      const el = document.createElement("div");
-      el.className = `toast ${type}`;
-      el.innerHTML = `<span class="toast-icon">${icons[type]}</span><span class="toast-msg">${esc(message)}</span>`;
-      container.appendChild(el);
-      setTimeout(() => el.remove(), 4000);
-    }
-
-    // ── Action fetch ───────────────────────────────────────
-    async function postAction(btn, orderId, action) {
-      const body = new FormData();
-
-      if (action === "assign-courier") {
-        const sel = document.querySelector(`[data-courier="${orderId}"]`);
-        if (!sel || !sel.value) {
-          showToast("Выберите курьера из списка.", "warning");
-          return;
-        }
-        body.append("courier_id", sel.value);
-      }
-
-      btn.classList.add("loading");
-      btn.disabled = true;
-
+      btn.classList.add('loading'); btn.disabled = true;
       try {
-        const res = await fetch(`/crm/orders/${orderId}/${action}/`, {
-          method: "POST",
-          credentials: "same-origin",
-          headers: { "X-CSRFToken": csrfToken, "X-Requested-With": "XMLHttpRequest" },
-          body,
+        const res = await fetch(`/crm/orders/${oid}/${act}/`, {
+          method: 'POST', credentials: 'same-origin',
+          headers: { 'X-CSRFToken': csrf, 'X-Requested-With': 'XMLHttpRequest' },
+          body: fd,
         });
-
-        const payload = await res.json().catch(() => ({}));
-
-        if (!res.ok) {
-          showToast(payload.detail || "Действие не выполнено.", "error");
-          return;
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) { toast(data.detail || 'Ошибка', 'err'); return; }
+        if (Array.isArray(data.orders)) {
+          S.orders = data.orders;
+          renderBoard();
+          toast('Статус обновлён', 'ok');
+          // invalidate history
+          if (S.history !== null) { S.history = null; if (S.tab === 'history') loadHistory(); }
         }
-
-        if (Array.isArray(payload.orders)) {
-          state.orders = payload.orders;
-          render();
-          showToast("Статус обновлён", "success");
-        } else {
-          location.reload();
-        }
-      } catch (_) {
-        showToast("Нет связи с сервером. Проверьте интернет.", "error");
-      } finally {
-        btn.classList.remove("loading");
-        btn.disabled = false;
-      }
+      } catch(_) { toast('Нет связи с сервером', 'err'); }
+      finally { btn.classList.remove('loading'); btn.disabled = false; }
     }
 
-    // ── Delegate clicks ────────────────────────────────────
-    document.addEventListener("click", e => {
-      const btn = e.target.closest("[data-action]");
+    document.addEventListener('click', e => {
+      const btn = e.target.closest('[data-act]');
       if (!btn) return;
       e.preventDefault();
-      postAction(btn, btn.dataset.order, btn.dataset.action);
+      doAction(btn, btn.dataset.oid, btn.dataset.act);
     });
 
-    // ── WebSocket ──────────────────────────────────────────
-    let reconnectTimer = null;
+    // ══ HISTORY TAB ══════════════════════════════════════════════════════════
 
-    function setLiveState(text, cls) {
-      const badge = document.getElementById("live-badge");
-      const label = document.getElementById("live-text");
-      badge.className = `live-badge ${cls}`;
-      label.textContent = text;
+    async function loadHistory() {
+      const list = document.getElementById('hist-list');
+      list.innerHTML = '<div class="panel-loader"><div class="panel-loader-spin"></div> Загрузка…</div>';
+      try {
+        const res = await fetch('/crm/api/history/', { credentials: 'same-origin' });
+        const data = await res.json();
+        S.history = data.orders;
+        document.getElementById('h-count').textContent = data.count;
+        document.getElementById('h-rev').textContent   = data.revenue.toLocaleString('ru-RU') + ' сом';
+        document.getElementById('tb-history').textContent = data.count;
+        renderHistory();
+      } catch(_) {
+        list.innerHTML = '<div class="panel-loader" style="color:var(--c-red)">Ошибка загрузки</div>';
+      }
     }
 
-    function connectSocket() {
-      const proto = location.protocol === "https:" ? "wss" : "ws";
+    function renderHistory() {
+      const q = S.histFilter.toLowerCase();
+      const filtered = (S.history || []).filter(o =>
+        !q || String(o.id).includes(q) || o.customer.phone_number.includes(q) || o.customer.name.toLowerCase().includes(q)
+      );
+      const list = document.getElementById('hist-list');
+      if (!filtered.length) {
+        list.innerHTML = '<div class="panel-loader" style="color:var(--c-text-3)">Нет заказов</div>';
+        return;
+      }
+      list.innerHTML = filtered.map(o => {
+        const isDel = o.delivery_type === 'delivery';
+        const customer = esc(o.customer.name || o.customer.phone_number);
+        const items = o.items.map(it => {
+          const opts = it.options.map(op => op.value || op).join(', ');
+          return `<div class="hcard-item-r">
+            <div>
+              <span style="font-weight:600">${esc(it.product_title)}</span> × ${it.quantity}
+              ${opts ? `<div style="font-size:10px;color:var(--c-text-3)">${esc(opts)}</div>` : ''}
+            </div>
+            <span style="font-weight:700;color:var(--c-accent)">${esc(it.final_price)} с</span>
+          </div>`;
+        }).join('');
+
+        return `<div class="hcard">
+          <div class="hcard-row" onclick="this.closest('.hcard').classList.toggle('open')">
+            <span class="hcard-time">${esc(o.delivered_at)}</span>
+            <div>
+              <div><span class="hcard-id">#${o.id}</span></div>
+              <div class="hcard-name">${customer}</div>
+              <div class="hcard-phone">${esc(o.customer.phone_number)}</div>
+            </div>
+            <span class="pill ${isDel ? 'pill-delivery' : 'pill-pickup'}">${esc(o.delivery_type_label)}</span>
+            <div style="font-size:14px;font-weight:800;color:var(--c-accent)">${esc(o.total_price)} с</div>
+            <span class="hcard-chevron">▼</span>
+          </div>
+          <div class="hcard-items">
+            <div class="hcard-inner">
+              ${items}
+              ${o.courier_name ? `<div style="margin-top:6px;font-size:11px;color:var(--c-text-3)">🚴 Курьер: <strong>${esc(o.courier_name)}</strong></div>` : ''}
+              <div class="hcard-total-row">
+                <span style="color:var(--c-text-3)">Принят: ${esc(o.created_at)}</span>
+                <strong>${esc(o.total_price)} сом</strong>
+              </div>
+            </div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    document.getElementById('hist-search').addEventListener('input', e => {
+      S.histFilter = e.target.value;
+      if (S.history !== null) renderHistory();
+    });
+    document.getElementById('hist-refresh').addEventListener('click', () => {
+      S.history = null; loadHistory();
+    });
+
+    // ══ COURIERS TAB ══════════════════════════════════════════════════════════
+
+    async function loadCouriers() {
+      const grid = document.getElementById('courier-grid');
+      grid.innerHTML = '<div class="panel-loader"><div class="panel-loader-spin"></div> Загрузка…</div>';
+      try {
+        const res = await fetch('/crm/api/couriers/', { credentials: 'same-origin' });
+        const data = await res.json();
+        S.cStatus = data.couriers;
+        document.getElementById('tb-couriers').textContent = data.couriers.length;
+        renderCouriers();
+      } catch(_) {
+        grid.innerHTML = '<div class="panel-loader" style="color:var(--c-red)">Ошибка загрузки</div>';
+      }
+    }
+
+    function renderCouriers() {
+      const grid = document.getElementById('courier-grid');
+      const list = S.cStatus || [];
+      if (!list.length) {
+        grid.innerHTML = `<div class="empty" style="grid-column:1/-1">
+          <div class="empty-ico">🚴</div>Нет курьеров. Добавьте сотрудников с ролью курьера.</div>`;
+        return;
+      }
+      grid.innerHTML = list.map(c => {
+        const ini = initials(c.name);
+        const busy = c.is_busy;
+        return `<div class="ccard">
+          <div class="ccard-avatar ${busy ? 'av-busy' : 'av-free'}">${ini}</div>
+          <div class="ccard-body">
+            <div class="ccard-name">${esc(c.name)}</div>
+            <div class="ccard-phone">${esc(c.phone_number)}</div>
+            <div class="ccard-status ${busy ? 'cstatus-busy' : 'cstatus-free'}">
+              ${busy ? '🟡 В доставке' : '🟢 Свободен'}
+            </div>
+            ${busy && c.active_order ? `<div class="ccard-order">
+              <strong>#${c.active_order.id}</strong> — ${esc(c.active_order.customer)}<br>
+              ${c.active_order.address ? `📍 ${esc(c.active_order.address)}` : ''}
+            </div>` : ''}
+            <div class="ccard-stats">Доставок сегодня: ${c.delivered_today}</div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    document.getElementById('courier-refresh').addEventListener('click', () => {
+      S.cStatus = null; loadCouriers();
+    });
+
+    // ══ WEBSOCKET ═════════════════════════════════════════════════════════════
+
+    function setWs(text, cls) {
+      document.getElementById('ws-badge').className = `ws-badge ${cls}`;
+      document.getElementById('ws-txt').textContent = text;
+    }
+
+    let wsRetry = null;
+    function connectWs() {
+      const proto = location.protocol === 'https:' ? 'wss' : 'ws';
       const ws = new WebSocket(`${proto}://${location.host}/ws/crm/orders/`);
-
-      ws.onopen = () => {
-        setLiveState("live", "online");
-        if (reconnectTimer) { clearTimeout(reconnectTimer); reconnectTimer = null; }
-      };
-
-      ws.onclose = () => {
-        setLiveState("нет связи", "offline");
-        reconnectTimer = setTimeout(connectSocket, 3000);
-      };
-
-      ws.onerror = () => setLiveState("ошибка", "offline");
-
+      ws.onopen  = () => { setWs('live', 'online'); clearTimeout(wsRetry); };
+      ws.onclose = () => { setWs('нет связи', 'offline'); wsRetry = setTimeout(connectWs, 3000); };
+      ws.onerror = () => setWs('ошибка', 'offline');
       ws.onmessage = e => {
         const payload = JSON.parse(e.data);
-        if (payload.type !== "orders.snapshot") return;
-
-        const prevIds = new Set(state.orders.map(o => o.id));
-        state.orders = payload.orders;
-        const newIds = new Set(
-          payload.orders.filter(o => !prevIds.has(o.id) && o.status === "accepted").map(o => o.id)
-        );
-        render(newIds);
+        if (payload.type !== 'orders.snapshot') return;
+        const prev = new Set(S.orders.map(o => o.id));
+        S.orders = payload.orders;
+        const newIds = new Set(payload.orders.filter(o => !prev.has(o.id) && o.status === 'accepted').map(o => o.id));
+        renderBoard(newIds);
+        // invalidate history & couriers if they're loaded
+        if (S.history !== null) { S.history = null; if (S.tab === 'history') loadHistory(); }
+        if (S.cStatus !== null) { S.cStatus = null; if (S.tab === 'couriers') loadCouriers(); }
       };
     }
 
-    // ── Init ───────────────────────────────────────────────
-    render();
-    connectSocket();
+    // ── Init ──────────────────────────────────────────────────────────────────
+    renderBoard();
+    connectWs();
+  })();
   </script>
 </body>
 </html>
