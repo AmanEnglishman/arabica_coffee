@@ -21,9 +21,12 @@ from apps.order.models import CafeMembership, Order
 # ── Helpers ────────────────────────────────────────────────────────────────────
 
 def _get_membership(request):
+    """Returns (membership, None) or (None, error_response)."""
+    if not request.user.is_authenticated:
+        return None, JsonResponse({"detail": "Требуется авторизация."}, status=403)
     membership = get_staff_membership(request.user)
     if membership is None:
-        return None, JsonResponse({"detail": "Нет доступа."}, status=403)
+        return None, JsonResponse({"detail": "Нет доступа. Нужна роль сотрудника кафе."}, status=403)
     return membership, None
 
 
@@ -55,10 +58,9 @@ def crm_orders_view(request):
         "orders": serialize_active_orders(cafe),
         "couriers": [
             {
-                "id": c.user_id,
-                "name": " ".join(p for p in [c.user.first_name, c.user.last_name] if p)
-                        or c.user.phone_number,
-                "phone_number": c.user.phone_number,
+                "id": c.id,
+                "name": " ".join(p for p in [c.first_name, c.last_name] if p) or c.phone_number,
+                "phone_number": c.phone_number,
             }
             for c in get_cafe_couriers(cafe)
         ],
@@ -71,7 +73,6 @@ def crm_orders_view(request):
 
 # ── API: history ───────────────────────────────────────────────────────────────
 
-@login_required(login_url="/admin/login/")
 def crm_history_api(request):
     membership, error = _get_membership(request)
     if error:
@@ -90,7 +91,6 @@ def crm_history_api(request):
 
 # ── API: couriers status ───────────────────────────────────────────────────────
 
-@login_required(login_url="/admin/login/")
 def crm_couriers_api(request):
     membership, error = _get_membership(request)
     if error:
@@ -119,7 +119,7 @@ def crm_order_action_view(request, order_id, action):
             return _orders_payload(membership.cafe)
         if order.status != "accepted":
             return JsonResponse(
-                {"detail": f"Нельзя отметить готовым. Статус: {order.get_status_display()}."},
+                {"detail": f"Нельзя отметить готовым — текущий статус: «{order.get_status_display()}». Ожидается «Принят»."},
                 status=400,
             )
         order.status = "ready"
@@ -131,15 +131,14 @@ def crm_order_action_view(request, order_id, action):
     if action == "mark-delivered":
         if order.status == "delivered":
             return _orders_payload(membership.cafe)
-        if order.status != "ready" or order.delivery_type != "pickup":
+        if order.status != "ready":
             return JsonResponse(
-                {
-                    "detail": (
-                        f"Нельзя выдать. "
-                        f"Статус: {order.get_status_display()}, "
-                        f"тип: {order.get_delivery_type_display()}."
-                    )
-                },
+                {"detail": f"Нельзя выдать — статус «{order.get_status_display()}», ожидается «Готов»."},
+                status=400,
+            )
+        if order.delivery_type != "pickup":
+            return JsonResponse(
+                {"detail": "Это заказ на доставку. Используйте назначение курьера."},
                 status=400,
             )
         order.status = "delivered"
@@ -147,52 +146,46 @@ def crm_order_action_view(request, order_id, action):
         order.save(update_fields=["status", "delivered_at", "updated_at"])
         return _orders_payload(membership.cafe)
 
-    # ready + delivery → on_the_way (assign courier)
+    # ready + delivery → on_the_way
     if action == "assign-courier":
-        if order.status != "ready" or order.delivery_type != "delivery":
+        if order.status != "ready":
             return JsonResponse(
-                {
-                    "detail": (
-                        f"Нельзя назначить курьера. "
-                        f"Статус: {order.get_status_display()}, "
-                        f"тип: {order.get_delivery_type_display()}."
-                    )
-                },
+                {"detail": f"Нельзя назначить курьера — статус «{order.get_status_display()}», ожидается «Готов»."},
+                status=400,
+            )
+        if order.delivery_type != "delivery":
+            return JsonResponse(
+                {"detail": "Это заказ-самовывоз. Курьер не нужен."},
                 status=400,
             )
         courier_id = request.POST.get("courier_id")
         if not courier_id:
-            return JsonResponse({"detail": "Выберите курьера."}, status=400)
-        courier_membership = get_object_or_404(
-            CafeMembership,
-            user_id=courier_id,
-            role=CafeMembership.Role.COURIER,
-            cafe=membership.cafe,
-        )
-        order.courier = courier_membership.user
+            return JsonResponse({"detail": "Выберите курьера из списка."}, status=400)
+        courier_qs = get_cafe_couriers(membership.cafe)
+        try:
+            courier_user = courier_qs.get(id=courier_id)
+        except courier_qs.model.DoesNotExist:
+            return JsonResponse({"detail": "Курьер не найден или не относится к этому кафе."}, status=404)
+        order.courier = courier_user
         order.status = "on_the_way"
         order.on_the_way_at = timezone.now()
         order.save(update_fields=["courier", "status", "on_the_way_at", "updated_at"])
         return _orders_payload(membership.cafe)
 
-    # on_the_way + delivery → delivered (staff closes delivery)
+    # on_the_way + delivery → delivered (staff closes)
     if action == "mark-delivery-delivered":
         if order.status == "delivered":
             return _orders_payload(membership.cafe)
-        if order.status != "on_the_way" or order.delivery_type != "delivery":
+        if order.status != "on_the_way":
             return JsonResponse(
-                {
-                    "detail": (
-                        f"Нельзя закрыть доставку. "
-                        f"Статус: {order.get_status_display()}, "
-                        f"тип: {order.get_delivery_type_display()}."
-                    )
-                },
+                {"detail": f"Нельзя закрыть — статус «{order.get_status_display()}», ожидается «В пути»."},
                 status=400,
             )
+        if order.delivery_type != "delivery":
+            return JsonResponse({"detail": "Это заказ-самовывоз."}, status=400)
         order.status = "delivered"
         order.delivered_at = timezone.now()
         order.save(update_fields=["status", "delivered_at", "updated_at"])
         return _orders_payload(membership.cafe)
 
-    return JsonResponse({"detail": "Неизвестное действие."}, status=404)
+    return JsonResponse({"detail": f"Неизвестное действие: {action}."}, status=404)

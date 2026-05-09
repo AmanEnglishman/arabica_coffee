@@ -1,9 +1,12 @@
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
-from django.db.models import Count, Sum
+from django.contrib.auth import get_user_model
+from django.db.models import Q, Sum
 from django.utils import timezone
 
 from apps.order.models import CafeMembership, Order
+
+User = get_user_model()
 
 
 ACTIVE_ORDER_STATUSES = ("accepted", "ready", "on_the_way")
@@ -26,34 +29,40 @@ def get_staff_membership(user):
 # ── Couriers ───────────────────────────────────────────────────────────────────
 
 def get_cafe_couriers(cafe):
+    """
+    Return User queryset of couriers for this cafe.
+    Includes users with CafeMembership.role=COURIER in this cafe,
+    OR users with is_courier=True who have any membership in this cafe.
+    """
+    cafe_member_ids = CafeMembership.objects.filter(cafe=cafe).values_list("user_id", flat=True)
     return (
-        CafeMembership.objects.select_related("user")
-        .filter(cafe=cafe, role=CafeMembership.Role.COURIER)
-        .order_by("user__first_name", "user__phone_number")
+        User.objects.filter(is_active=True)
+        .filter(
+            Q(cafe_membership__cafe=cafe, cafe_membership__role=CafeMembership.Role.COURIER)
+            | Q(is_courier=True, id__in=cafe_member_ids)
+        )
+        .distinct()
+        .order_by("first_name", "phone_number")
     )
 
 
 def get_couriers_with_status(cafe):
     today = timezone.now().date()
-    couriers = get_cafe_couriers(cafe)
     result = []
-    for m in couriers:
+    for user in get_cafe_couriers(cafe):
         active = (
-            Order.objects.filter(courier=m.user, cafe=cafe, status="on_the_way")
+            Order.objects.filter(courier=user, cafe=cafe, status="on_the_way")
             .select_related("user")
             .first()
         )
         delivered_today = Order.objects.filter(
-            courier=m.user, cafe=cafe, status="delivered", delivered_at__date=today
+            courier=user, cafe=cafe, status="delivered", delivered_at__date=today
         ).count()
-        name = (
-            " ".join(p for p in [m.user.first_name, m.user.last_name] if p)
-            or m.user.phone_number
-        )
+        name = " ".join(p for p in [user.first_name, user.last_name] if p) or user.phone_number
         result.append({
-            "id": m.user_id,
+            "id": user.id,
             "name": name,
-            "phone_number": m.user.phone_number,
+            "phone_number": user.phone_number,
             "is_busy": active is not None,
             "active_order": {
                 "id": active.id,
@@ -114,6 +123,7 @@ def serialize_order(order):
                 "product_title": item.product.title,
                 "quantity": item.quantity,
                 "options": item.product_options.get("options", []),
+                "comment": item.product_options.get("comment", ""),
                 "final_price": str(item.final_price),
             }
             for item in order.items.all()

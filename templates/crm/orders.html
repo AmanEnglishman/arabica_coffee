@@ -5,534 +5,287 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>CRM — {{ cafe.name }}</title>
   <style>
-    /* ══ RESET & BASE ══════════════════════════════════════════════════════════ */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     button, select, input { font: inherit; }
-    a { color: inherit; text-decoration: none; }
 
     :root {
-      --c-bg:        #EFEBE4;
-      --c-surface:   #FAF7F2;
-      --c-card:      #FFFFFF;
-      --c-border:    #DDD5C8;
-      --c-border-2:  #EDE6DB;
-      --c-text:      #1C110B;
-      --c-text-2:    #5A4636;
-      --c-text-3:    #9A867A;
-      --c-accent:    #7B3314;
-      --c-accent-h:  #5E2409;
-      --c-accent-l:  #F5EAE4;
-      --c-green:     #1A6B3C;
-      --c-green-bg:  #E3F4EC;
-      --c-amber:     #7A4D00;
-      --c-amber-bg:  #FEF3D0;
-      --c-blue:      #1A4D82;
-      --c-blue-bg:   #DDE9F8;
-      --c-red:       #8B1A1A;
-      --c-red-bg:    #FDE8E8;
-      --c-purple:    #5A2A7A;
-      --c-purple-bg: #EEE5F8;
-      --shadow-s:    0 1px 3px rgba(50,25,10,.08);
-      --shadow-m:    0 4px 16px rgba(50,25,10,.10);
-      --shadow-l:    0 10px 36px rgba(50,25,10,.14);
-      --r:           10px;
-      --r-s:         6px;
+      --bg:       #EFEBE4;
+      --surf:     #FAF7F2;
+      --card:     #FFFFFF;
+      --brd:      #DDD5C8;
+      --brd2:     #EDE6DB;
+      --txt:      #1C110B;
+      --txt2:     #5A4636;
+      --txt3:     #9A867A;
+      --acc:      #7B3314;
+      --acc-h:    #5E2409;
+      --acc-l:    #F5EAE4;
+      --grn:      #1A6B3C;
+      --grn-bg:   #E3F4EC;
+      --amb:      #7A4D00;
+      --amb-bg:   #FEF3D0;
+      --blu:      #1A4D82;
+      --blu-bg:   #DDE9F8;
+      --red:      #8B1A1A;
+      --red-bg:   #FDE8E8;
+      --sh-s:     0 1px 3px rgba(50,25,10,.08);
+      --sh-m:     0 4px 16px rgba(50,25,10,.10);
+      --sh-l:     0 10px 36px rgba(50,25,10,.14);
+      --r:        10px; --rs: 6px;
     }
 
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
-      font-size: 14px;
-      line-height: 1.5;
-      background: var(--c-bg);
-      color: var(--c-text);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; font-size: 14px; line-height: 1.5; background: var(--bg); color: var(--txt); min-height: 100vh; display: flex; flex-direction: column; }
 
-    /* ══ TOPBAR ════════════════════════════════════════════════════════════════ */
+    /* ── TOPBAR ─────────────────────────────────────────────── */
     .topbar {
-      position: sticky;
-      top: 0;
-      z-index: 30;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 0 20px;
-      height: 56px;
-      background: var(--c-accent);
-      color: #fff;
-      box-shadow: 0 2px 8px rgba(50,15,5,.25);
-      flex-shrink: 0;
+      position: sticky; top: 0; z-index: 30;
+      display: flex; align-items: center; gap: 12px;
+      padding: 0 20px; height: 56px;
+      background: var(--acc); color: #fff;
+      box-shadow: 0 2px 8px rgba(50,15,5,.25); flex-shrink: 0;
     }
-
-    .tb-logo {
-      width: 34px; height: 34px;
-      border-radius: 8px;
-      background: rgba(255,255,255,.18);
-      display: grid; place-items: center;
-      font-size: 18px; flex-shrink: 0;
-    }
-
+    .tb-logo { width: 34px; height: 34px; border-radius: 8px; background: rgba(255,255,255,.18); display: grid; place-items: center; font-size: 18px; flex-shrink: 0; }
     .tb-cafe { font-size: 15px; font-weight: 700; }
     .tb-addr { font-size: 11px; opacity: .7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px; }
-
-    .tb-sep { width: 1px; height: 26px; background: rgba(255,255,255,.2); flex-shrink: 0; margin: 0 4px; }
-
+    .tb-sep  { width: 1px; height: 26px; background: rgba(255,255,255,.2); flex-shrink: 0; margin: 0 4px; }
     .tb-right { display: flex; align-items: center; gap: 10px; margin-left: auto; flex-shrink: 0; }
-
     .tb-staff { display: flex; align-items: center; gap: 7px; font-size: 13px; opacity: .9; }
-    .tb-avatar {
-      width: 28px; height: 28px; border-radius: 50%;
-      background: rgba(255,255,255,.22);
-      display: grid; place-items: center;
-      font-size: 11px; font-weight: 800;
-    }
-
-    .tb-clock { font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; }
-
-    .ws-badge {
-      display: inline-flex; align-items: center; gap: 5px;
-      padding: 4px 10px; border-radius: 999px;
-      background: rgba(255,255,255,.14);
-      font-size: 11px; font-weight: 600;
-    }
-    .ws-dot {
-      width: 6px; height: 6px; border-radius: 50%;
-      background: #FCD34D; transition: background .3s;
-    }
+    .tb-avatar { width: 28px; height: 28px; border-radius: 50%; background: rgba(255,255,255,.22); display: grid; place-items: center; font-size: 11px; font-weight: 800; }
+    .tb-clock  { font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; }
+    .ws-badge  { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 999px; background: rgba(255,255,255,.14); font-size: 11px; font-weight: 600; }
+    .ws-dot    { width: 6px; height: 6px; border-radius: 50%; background: #FCD34D; transition: background .3s; }
     .ws-badge.online  .ws-dot { background: #4ADE80; animation: pulse 2s infinite; }
     .ws-badge.offline .ws-dot { background: #F87171; }
     @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
 
-    /* ══ TABS ══════════════════════════════════════════════════════════════════ */
-    .tabbar {
-      display: flex;
-      align-items: stretch;
-      gap: 2px;
-      padding: 10px 20px 0;
-      background: var(--c-accent);
-      flex-shrink: 0;
-    }
-
+    /* ── TABS ───────────────────────────────────────────────── */
+    .tabbar { display: flex; align-items: stretch; gap: 2px; padding: 10px 20px 0; background: var(--acc); flex-shrink: 0; }
     .tab {
       display: inline-flex; align-items: center; gap: 7px;
-      padding: 9px 18px;
-      border-radius: var(--r) var(--r) 0 0;
-      background: rgba(255,255,255,.12);
-      color: rgba(255,255,255,.75);
-      font-size: 13px; font-weight: 600;
-      cursor: pointer; border: none;
-      transition: background .15s, color .15s;
-      user-select: none;
+      padding: 9px 18px; border-radius: var(--r) var(--r) 0 0;
+      background: rgba(255,255,255,.12); color: rgba(255,255,255,.75);
+      font-size: 13px; font-weight: 600; cursor: pointer; border: none;
+      transition: background .15s, color .15s; user-select: none;
     }
     .tab:hover { background: rgba(255,255,255,.2); color: #fff; }
-    .tab.active { background: var(--c-bg); color: var(--c-accent); }
-
-    .tab-badge {
+    .tab.active { background: var(--bg); color: var(--acc); }
+    .tb-badge {
       display: inline-flex; align-items: center; justify-content: center;
-      min-width: 20px; height: 20px;
-      padding: 0 5px; border-radius: 999px;
+      min-width: 20px; height: 20px; padding: 0 5px; border-radius: 999px;
       font-size: 11px; font-weight: 800;
-      background: rgba(255,255,255,.25);
-      color: inherit;
+      background: rgba(255,255,255,.25); color: inherit;
     }
-    .tab.active .tab-badge { background: var(--c-accent-l); color: var(--c-accent); }
+    .tab.active .tb-badge { background: var(--acc-l); color: var(--acc); }
 
-    /* ══ TAB PANELS ════════════════════════════════════════════════════════════ */
-    .panel { display: none; flex: 1; flex-direction: column; }
+    /* ── PANELS ─────────────────────────────────────────────── */
+    .panel { display: none; flex: 1; flex-direction: column; min-height: 0; }
     .panel.active { display: flex; }
 
-    /* ══ STATS BAR ═════════════════════════════════════════════════════════════ */
-    .statsbar {
-      display: flex;
-      gap: 0;
-      background: var(--c-surface);
-      border-bottom: 1px solid var(--c-border);
-      overflow-x: auto;
-      flex-shrink: 0;
-    }
-
-    .stat {
-      display: flex; align-items: center; gap: 10px;
-      padding: 10px 18px;
-      border-right: 1px solid var(--c-border-2);
-      white-space: nowrap; flex-shrink: 0;
-    }
+    /* ── STATS BAR ──────────────────────────────────────────── */
+    .statsbar { display: flex; background: var(--surf); border-bottom: 1px solid var(--brd); overflow-x: auto; flex-shrink: 0; }
+    .stat { display: flex; align-items: center; gap: 10px; padding: 10px 18px; border-right: 1px solid var(--brd2); white-space: nowrap; flex-shrink: 0; }
     .stat:last-child { border-right: none; }
-
-    .stat-icon {
-      width: 32px; height: 32px; border-radius: 8px;
-      display: grid; place-items: center; font-size: 16px;
-    }
-    .si-new    { background: var(--c-amber-bg); }
-    .si-ready  { background: var(--c-green-bg); }
-    .si-way    { background: var(--c-blue-bg); }
-    .si-done   { background: #F0EFF8; }
-    .si-rev    { background: var(--c-accent-l); }
-
+    .stat-ico { width: 32px; height: 32px; border-radius: 8px; display: grid; place-items: center; font-size: 16px; }
+    .si-n { background: var(--amb-bg); } .si-r { background: var(--grn-bg); }
+    .si-w { background: var(--blu-bg); } .si-d { background: #F0EFF8; } .si-v { background: var(--acc-l); }
     .stat-val   { font-size: 18px; font-weight: 800; line-height: 1; }
-    .stat-label { font-size: 11px; color: var(--c-text-3); margin-top: 2px; }
+    .stat-label { font-size: 11px; color: var(--txt3); margin-top: 2px; }
 
-    /* ══ BOARD ═════════════════════════════════════════════════════════════════ */
-    .board {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(270px, 1fr));
-      gap: 14px;
-      padding: 14px 20px 24px;
-      align-items: start;
-      flex: 1;
+    /* ── FILTER BAR ─────────────────────────────────────────── */
+    .filter-bar {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 20px; background: var(--surf);
+      border-bottom: 1px solid var(--brd2); flex-shrink: 0; flex-wrap: wrap;
     }
+    .filter-label { font-size: 12px; color: var(--txt3); margin-right: 2px; }
+    .fbtn {
+      padding: 5px 12px; border-radius: 999px; border: 1px solid var(--brd);
+      background: var(--card); color: var(--txt2);
+      font-size: 12px; font-weight: 600; cursor: pointer;
+      transition: background .15s, border-color .15s, color .15s;
+    }
+    .fbtn:hover   { background: var(--bg); }
+    .fbtn.active  { background: var(--acc); color: #fff; border-color: var(--acc); }
+    .fbtn.f-pick  { }
+    .fbtn.f-del   { }
 
-    .lane {
-      background: var(--c-surface);
-      border: 1px solid var(--c-border);
-      border-radius: var(--r);
-      box-shadow: var(--shadow-s);
-    }
-
-    .lane-head {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 11px 13px;
-      border-bottom: 1px solid var(--c-border-2);
-    }
+    /* ── BOARD ──────────────────────────────────────────────── */
+    .board { display: grid; grid-template-columns: repeat(3, minmax(270px, 1fr)); gap: 14px; padding: 14px 20px 24px; align-items: start; flex: 1; }
+    .lane { background: var(--surf); border: 1px solid var(--brd); border-radius: var(--r); box-shadow: var(--sh-s); }
+    .lane-head { display: flex; align-items: center; justify-content: space-between; padding: 11px 13px; border-bottom: 1px solid var(--brd2); }
     .lane-title-row { display: flex; align-items: center; gap: 7px; }
-    .lane-icon { font-size: 15px; }
+    .lane-icon  { font-size: 15px; }
     .lane-title { font-size: 13px; font-weight: 700; }
-
-    .lane-count {
-      min-width: 24px; padding: 2px 7px;
-      border-radius: 999px; text-align: center;
-      font-size: 12px; font-weight: 700;
-      background: #E8DFD4; color: var(--c-text-2);
+    .lane-cnt {
+      min-width: 24px; padding: 2px 7px; border-radius: 999px;
+      text-align: center; font-size: 12px; font-weight: 700;
+      background: #E8DFD4; color: var(--txt2);
     }
-    [data-lane="accepted"]  .lane-count { background: var(--c-amber-bg);  color: var(--c-amber); }
-    [data-lane="ready"]     .lane-count { background: var(--c-green-bg);  color: var(--c-green); }
-    [data-lane="on_the_way"].lane-count { background: var(--c-blue-bg);   color: var(--c-blue); }
+    [data-lane="accepted"]   .lane-cnt { background: var(--amb-bg); color: var(--amb); }
+    [data-lane="ready"]      .lane-cnt { background: var(--grn-bg); color: var(--grn); }
+    [data-lane="on_the_way"] .lane-cnt { background: var(--blu-bg); color: var(--blu); }
+    .lane-body { padding: 9px; display: flex; flex-direction: column; gap: 9px; min-height: 100px; }
 
-    .lane-body {
-      padding: 9px; display: flex; flex-direction: column;
-      gap: 9px; min-height: 100px;
-    }
+    /* ── EMPTY ──────────────────────────────────────────────── */
+    .empty { display: flex; flex-direction: column; align-items: center; gap: 5px; min-height: 90px; border: 1.5px dashed var(--brd); border-radius: var(--rs); color: var(--txt3); font-size: 12px; padding: 18px; text-align: center; }
+    .empty-ico { font-size: 22px; opacity: .45; }
 
-    /* ══ ORDER CARD ════════════════════════════════════════════════════════════ */
+    /* ── ORDER CARD ─────────────────────────────────────────── */
     .ocard {
-      background: var(--c-card);
-      border: 1px solid var(--c-border);
-      border-radius: var(--r);
-      box-shadow: var(--shadow-s);
-      overflow: hidden;
-      animation: slideIn .22s ease;
-      transition: box-shadow .2s;
+      background: var(--card); border: 1px solid var(--brd); border-radius: var(--r);
+      box-shadow: var(--sh-s); overflow: hidden;
+      border-left: 4px solid transparent;
+      animation: slideIn .22s ease; transition: box-shadow .2s;
     }
-    .ocard:hover { box-shadow: var(--shadow-m); }
+    .ocard:hover { box-shadow: var(--sh-m); }
+    .ocard.is-pickup   { border-left-color: var(--amb); }
+    .ocard.is-delivery { border-left-color: var(--blu); }
+    .ocard.urgent { outline: 2px solid rgba(248,113,113,.45); animation: urgentPulse 2.5s ease infinite; }
+    @keyframes slideIn      { from{opacity:0;transform:translateY(-5px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes urgentPulse  { 0%,100%{outline-color:rgba(248,113,113,.35)} 50%{outline-color:rgba(248,113,113,.7)} }
 
-    @keyframes slideIn { from{opacity:0;transform:translateY(-5px)} to{opacity:1;transform:translateY(0)} }
-
-    .ocard.urgent {
-      border-color: #F87171;
-      box-shadow: 0 0 0 2px rgba(248,113,113,.22);
-      animation: urgentPulse 2.5s ease infinite;
-    }
-    @keyframes urgentPulse {
-      0%,100% { box-shadow: 0 0 0 2px rgba(248,113,113,.22); }
-      50%      { box-shadow: 0 0 0 4px rgba(248,113,113,.38); }
-    }
-
-    .ocard-head {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 10px 12px 8px;
-      border-bottom: 1px solid var(--c-border-2);
-    }
+    .ocard-head { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px 8px; border-bottom: 1px solid var(--brd2); }
     .ocard-id-row { display: flex; align-items: center; gap: 7px; }
-    .ocard-id { font-size: 15px; font-weight: 800; color: var(--c-accent); }
+    .ocard-id   { font-size: 15px; font-weight: 800; color: var(--acc); }
 
-    .pill {
-      display: inline-flex; align-items: center; gap: 3px;
-      padding: 2px 7px; border-radius: 999px;
-      font-size: 11px; font-weight: 600;
-    }
-    .pill-delivery { background: var(--c-blue-bg);   color: var(--c-blue); }
-    .pill-pickup   { background: var(--c-amber-bg);  color: var(--c-amber); }
-    .pill-timer    { background: var(--c-green-bg);  color: var(--c-green); font-variant-numeric: tabular-nums; }
-    .pill-timer.warn  { background: var(--c-amber-bg); color: var(--c-amber); }
-    .pill-timer.alert { background: var(--c-red-bg);   color: var(--c-red); }
+    .pill { display: inline-flex; align-items: center; gap: 3px; padding: 2px 7px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+    .p-del   { background: var(--blu-bg); color: var(--blu); }
+    .p-pick  { background: var(--amb-bg); color: var(--amb); }
+    .p-timer { background: var(--grn-bg); color: var(--grn); font-variant-numeric: tabular-nums; }
+    .p-timer.warn  { background: var(--amb-bg); color: var(--amb); }
+    .p-timer.alert { background: var(--red-bg); color: var(--red); }
 
-    .ocard-body { padding: 9px 12px; display: flex; flex-direction: column; gap: 7px; }
+    .ocard-body { padding: 9px 12px; display: flex; flex-direction: column; gap: 0; }
+    .irow { display: flex; align-items: flex-start; gap: 7px; font-size: 12px; color: var(--txt2); padding: 5px 0; border-bottom: 1px solid var(--brd2); }
+    .irow:last-child { border-bottom: none; }
+    .irow-ico { flex-shrink: 0; font-size: 13px; margin-top: 1px; }
+    .irow-lbl { font-size: 10px; color: var(--txt3); }
+    .irow-val { font-weight: 600; color: var(--txt); font-size: 13px; }
+    .irow-sub { font-size: 11px; color: var(--txt3); }
 
-    .irow {
-      display: flex; align-items: flex-start; gap: 7px;
-      font-size: 12px; color: var(--c-text-2);
-      padding-bottom: 6px; border-bottom: 1px solid var(--c-border-2);
-    }
-    .irow:last-child { border-bottom: none; padding-bottom: 0; }
-    .irow-icon { flex-shrink: 0; font-size: 13px; margin-top: 1px; }
-    .irow-lbl  { font-size: 10px; color: var(--c-text-3); }
-    .irow-val  { font-weight: 600; color: var(--c-text); font-size: 13px; }
-
-    .items-block { margin-top: 2px; }
-    .items-hd { font-size: 10px; color: var(--c-text-3); text-transform: uppercase; letter-spacing: .4px; margin-bottom: 5px; }
-    .item-r {
-      display: flex; justify-content: space-between; gap: 8px;
-      font-size: 12px; padding: 4px 0;
-      border-bottom: 1px solid var(--c-border-2);
-    }
+    /* items */
+    .items-wrap { margin-top: 2px; }
+    .items-hd   { font-size: 10px; color: var(--txt3); text-transform: uppercase; letter-spacing: .4px; margin-bottom: 4px; }
+    .item-r     { display: flex; justify-content: space-between; gap: 6px; font-size: 12px; padding: 4px 0; border-bottom: 1px solid var(--brd2); }
     .item-r:last-child { border-bottom: none; }
-    .item-name { font-weight: 600; }
-    .item-qty  { color: var(--c-text-3); }
-    .item-opts { font-size: 10px; color: var(--c-text-3); margin-top: 1px; }
-    .item-price { font-weight: 700; color: var(--c-accent); white-space: nowrap; }
+    .item-name  { font-weight: 600; }
+    .item-qty   { color: var(--txt3); }
+    .item-meta  { font-size: 10px; color: var(--txt3); margin-top: 2px; }
+    .item-comment { font-size: 10px; color: var(--acc); background: var(--acc-l); border-radius: 4px; padding: 1px 5px; margin-top: 2px; display: inline-block; }
+    .item-price { font-weight: 700; color: var(--acc); white-space: nowrap; }
 
-    .ocard-total {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 7px 0 0; margin-top: 2px;
-      border-top: 1px solid var(--c-border-2);
-    }
-    .ocard-total-lbl   { font-size: 11px; color: var(--c-text-3); }
-    .ocard-total-price { font-size: 16px; font-weight: 800; color: var(--c-accent); }
+    .ocard-total { display: flex; justify-content: space-between; align-items: center; padding: 7px 0 0; margin-top: 2px; border-top: 1px solid var(--brd2); }
+    .ocard-total-lbl   { font-size: 11px; color: var(--txt3); }
+    .ocard-total-price { font-size: 16px; font-weight: 800; color: var(--acc); }
 
-    .ocard-actions {
-      padding: 9px 12px 11px;
-      border-top: 1px solid var(--c-border-2);
-      background: #FDF9F5;
-      display: flex; flex-direction: column; gap: 7px;
-    }
+    .ocard-actions { padding: 9px 12px 11px; border-top: 1px solid var(--brd2); background: #FDF9F5; display: flex; flex-direction: column; gap: 7px; }
 
-    /* ══ BUTTONS ═══════════════════════════════════════════════════════════════ */
+    /* ── BUTTONS ────────────────────────────────────────────── */
     .btn {
       position: relative;
       display: inline-flex; align-items: center; justify-content: center; gap: 5px;
-      min-height: 36px; padding: 0 14px;
-      border: none; border-radius: var(--r-s);
-      font-size: 13px; font-weight: 700;
-      cursor: pointer; user-select: none;
-      transition: background .15s, transform .1s;
-      white-space: nowrap;
+      min-height: 36px; padding: 0 14px; border: none; border-radius: var(--rs);
+      font-size: 13px; font-weight: 700; cursor: pointer; user-select: none;
+      transition: background .15s, transform .1s; white-space: nowrap;
     }
     .btn:active:not(:disabled) { transform: scale(.97); }
     .btn:disabled { opacity: .5; cursor: not-allowed; }
     .btn-full { width: 100%; }
-
-    .btn-primary { background: var(--c-accent);  color: #fff; }
-    .btn-primary:hover:not(:disabled) { background: var(--c-accent-h); }
-
-    .btn-success { background: var(--c-green);   color: #fff; }
+    .btn-sm   { min-height: 30px; font-size: 12px; padding: 0 10px; }
+    .btn-primary { background: var(--acc); color: #fff; }
+    .btn-primary:hover:not(:disabled) { background: var(--acc-h); }
+    .btn-success { background: var(--grn); color: #fff; }
     .btn-success:hover:not(:disabled) { background: #145430; }
-
-    .btn-blue    { background: var(--c-blue);    color: #fff; }
+    .btn-blue    { background: var(--blu); color: #fff; }
     .btn-blue:hover:not(:disabled)    { background: #133A65; }
+    .btn-ghost   { background: transparent; color: var(--txt2); border: 1px solid var(--brd); }
+    .btn-ghost:hover:not(:disabled)   { background: var(--bg); }
 
-    .btn-ghost {
-      background: transparent; color: var(--c-text-2);
-      border: 1px solid var(--c-border);
-    }
-    .btn-ghost:hover:not(:disabled) { background: var(--c-bg); }
-
-    .btn-sm { min-height: 30px; font-size: 12px; padding: 0 10px; }
-
-    /* spinner inside btn */
-    .spin {
-      display: none; width: 13px; height: 13px;
-      border: 2px solid rgba(255,255,255,.35);
-      border-top-color: #fff; border-radius: 50%;
-      animation: rot .55s linear infinite;
-    }
+    .spin { display: none; width: 13px; height: 13px; border: 2px solid rgba(255,255,255,.35); border-top-color: #fff; border-radius: 50%; animation: rot .55s linear infinite; }
     @keyframes rot { to { transform: rotate(360deg); } }
-    .btn.loading .spin   { display: block; }
+    .btn.loading .spin { display: block; }
     .btn.loading .btn-tx { opacity: 0; }
 
-    /* ══ COURIER SELECT ════════════════════════════════════════════════════════ */
-    .courier-row { display: flex; gap: 7px; }
-    .c-select {
-      flex: 1; min-height: 36px;
-      border: 1px solid var(--c-border); border-radius: var(--r-s);
-      padding: 0 28px 0 9px; background: var(--c-card); color: var(--c-text);
-      appearance: none;
+    .c-row { display: flex; gap: 7px; }
+    .c-sel {
+      flex: 1; min-height: 36px; border: 1px solid var(--brd); border-radius: var(--rs);
+      padding: 0 28px 0 9px; background: var(--card); color: var(--txt); appearance: none;
       background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath fill='%23999' d='M5 7L0 2h10z'/%3E%3C/svg%3E");
       background-repeat: no-repeat; background-position: right 9px center;
     }
-    .c-select:focus { outline: 2px solid var(--c-accent); border-color: var(--c-accent); }
+    .c-sel:focus { outline: 2px solid var(--acc); border-color: var(--acc); }
 
-    /* ══ EMPTY ═════════════════════════════════════════════════════════════════ */
-    .empty {
-      display: flex; flex-direction: column; align-items: center; gap: 5px;
-      min-height: 100px; border: 1.5px dashed var(--c-border);
-      border-radius: var(--r-s); color: var(--c-text-3);
-      font-size: 12px; padding: 18px; text-align: center;
-    }
-    .empty-ico { font-size: 24px; opacity: .45; }
-
-    /* ══ HISTORY PANEL ══════════════════════════════════════════════════════════ */
-    .hist-bar {
-      display: flex; align-items: center; gap: 10px;
-      padding: 12px 20px;
-      background: var(--c-surface);
-      border-bottom: 1px solid var(--c-border);
-      flex-wrap: wrap;
-    }
-    .hist-stats { display: flex; gap: 16px; font-size: 13px; }
-    .hist-stat { display: flex; align-items: center; gap: 5px; color: var(--c-text-2); }
-    .hist-stat strong { color: var(--c-text); font-size: 16px; }
-
-    .search-input {
-      min-height: 34px; padding: 0 10px;
-      border: 1px solid var(--c-border); border-radius: var(--r-s);
-      background: var(--c-card); color: var(--c-text); width: 200px;
-    }
-    .search-input:focus { outline: 2px solid var(--c-accent); border-color: var(--c-accent); }
-
+    /* ── HISTORY PANEL ──────────────────────────────────────── */
+    .hist-bar { display: flex; align-items: center; gap: 10px; padding: 12px 20px; background: var(--surf); border-bottom: 1px solid var(--brd); flex-wrap: wrap; flex-shrink: 0; }
+    .hist-stats { display: flex; gap: 20px; font-size: 13px; }
+    .hist-stat  { display: flex; align-items: center; gap: 5px; color: var(--txt2); }
+    .hist-stat strong { color: var(--txt); font-size: 16px; }
+    .srch { min-height: 34px; padding: 0 10px; border: 1px solid var(--brd); border-radius: var(--rs); background: var(--card); color: var(--txt); width: 210px; }
+    .srch:focus { outline: 2px solid var(--acc); border-color: var(--acc); }
     .hist-list { flex: 1; overflow-y: auto; padding: 14px 20px; display: flex; flex-direction: column; gap: 8px; }
 
-    .hcard {
-      background: var(--c-card);
-      border: 1px solid var(--c-border);
-      border-radius: var(--r);
-      box-shadow: var(--shadow-s);
-      overflow: hidden;
-    }
-
-    .hcard-row {
-      display: grid;
-      grid-template-columns: 60px 1fr 1fr auto auto;
-      align-items: center;
-      gap: 12px;
-      padding: 11px 14px;
-      cursor: pointer;
-    }
+    .hcard { background: var(--card); border: 1px solid var(--brd); border-radius: var(--r); box-shadow: var(--sh-s); overflow: hidden; }
+    .hcard-row { display: grid; grid-template-columns: 52px 1fr 100px 90px 24px; align-items: center; gap: 12px; padding: 10px 14px; cursor: pointer; }
     .hcard-row:hover { background: #FEFCF9; }
-
-    .hcard-time { font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--c-text-3); }
-    .hcard-id   { font-size: 14px; font-weight: 800; color: var(--c-accent); }
+    .hcard-time { font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--txt3); }
+    .hcard-id   { font-size: 14px; font-weight: 800; color: var(--acc); }
     .hcard-name { font-size: 13px; font-weight: 600; }
-    .hcard-phone { font-size: 11px; color: var(--c-text-3); }
-
-    .hcard-items { overflow: hidden; display: none; border-top: 1px solid var(--c-border-2); }
-    .hcard.open .hcard-items { display: block; }
-    .hcard-chevron { transition: transform .2s; font-size: 12px; color: var(--c-text-3); }
-    .hcard.open .hcard-chevron { transform: rotate(180deg); }
-
+    .hcard-ph   { font-size: 11px; color: var(--txt3); }
+    .hcard-price { font-size: 14px; font-weight: 800; color: var(--acc); text-align: right; }
+    .hcard-chev { font-size: 11px; color: var(--txt3); transition: transform .2s; }
+    .hcard.open .hcard-chev { transform: rotate(180deg); }
+    .hcard-body { display: none; border-top: 1px solid var(--brd2); }
+    .hcard.open .hcard-body { display: block; }
     .hcard-inner { padding: 10px 14px; }
-    .hcard-item-r {
-      display: flex; justify-content: space-between; gap: 8px;
-      font-size: 12px; padding: 4px 0;
-      border-bottom: 1px solid var(--c-border-2);
-    }
-    .hcard-item-r:last-child { border-bottom: none; }
-    .hcard-total-row {
-      display: flex; justify-content: space-between;
-      padding: 8px 0 2px; font-size: 13px;
-      border-top: 1px solid var(--c-border-2); margin-top: 4px;
-    }
-    .hcard-total-row strong { color: var(--c-accent); font-size: 15px; }
+    .h-item-r { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; padding: 4px 0; border-bottom: 1px solid var(--brd2); }
+    .h-item-r:last-child { border-bottom: none; }
+    .hcard-footer { display: flex; justify-content: space-between; align-items: center; padding: 8px 0 2px; border-top: 1px solid var(--brd2); margin-top: 4px; font-size: 12px; }
+    .hcard-footer strong { color: var(--acc); font-size: 14px; }
 
-    /* ══ COURIERS PANEL ════════════════════════════════════════════════════════ */
-    .courier-panel-bar {
-      display: flex; align-items: center; gap: 10px;
-      padding: 12px 20px;
-      background: var(--c-surface);
-      border-bottom: 1px solid var(--c-border);
-    }
-    .courier-panel-bar h2 { font-size: 15px; margin-right: auto; }
-
-    .courier-grid {
-      flex: 1; padding: 16px 20px;
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-      gap: 14px;
-      align-content: start;
-    }
-
-    .ccard {
-      background: var(--c-card);
-      border: 1px solid var(--c-border);
-      border-radius: var(--r);
-      box-shadow: var(--shadow-s);
-      padding: 16px;
-      display: flex; gap: 14px; align-items: flex-start;
-    }
-
-    .ccard-avatar {
-      width: 46px; height: 46px; border-radius: 50%;
-      display: grid; place-items: center;
-      font-size: 16px; font-weight: 800; color: #fff;
-      flex-shrink: 0;
-    }
-    .av-busy { background: var(--c-amber); }
-    .av-free { background: var(--c-green); }
-
+    /* ── COURIERS PANEL ─────────────────────────────────────── */
+    .cour-bar { display: flex; align-items: center; gap: 10px; padding: 12px 20px; background: var(--surf); border-bottom: 1px solid var(--brd); flex-shrink: 0; }
+    .cour-bar h2 { font-size: 15px; margin-right: auto; }
+    .cour-grid { flex: 1; padding: 16px 20px; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; align-content: start; overflow-y: auto; }
+    .ccard { background: var(--card); border: 1px solid var(--brd); border-radius: var(--r); box-shadow: var(--sh-s); padding: 16px; display: flex; gap: 14px; align-items: flex-start; }
+    .ccard-av { width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; font-size: 16px; font-weight: 800; color: #fff; flex-shrink: 0; }
+    .av-free { background: var(--grn); } .av-busy { background: var(--amb); }
     .ccard-body { flex: 1; min-width: 0; }
     .ccard-name  { font-size: 14px; font-weight: 700; }
-    .ccard-phone { font-size: 12px; color: var(--c-text-3); }
-
+    .ccard-phone { font-size: 12px; color: var(--txt3); }
     .ccard-status { display: flex; align-items: center; gap: 5px; margin-top: 8px; font-size: 12px; font-weight: 600; }
-    .cstatus-busy { color: var(--c-amber); }
-    .cstatus-free { color: var(--c-green); }
+    .cs-free { color: var(--grn); } .cs-busy { color: var(--amb); }
+    .ccard-order { margin-top: 7px; padding: 7px; border-radius: var(--rs); background: var(--amb-bg); font-size: 11px; line-height: 1.6; }
+    .ccard-order strong { color: var(--amb); }
+    .ccard-stats { margin-top: 8px; font-size: 11px; color: var(--txt3); }
 
-    .ccard-order {
-      margin-top: 7px; padding: 7px; border-radius: var(--r-s);
-      background: var(--c-amber-bg); font-size: 11px; line-height: 1.5;
-    }
-    .ccard-order strong { color: var(--c-amber); }
-
-    .ccard-stats { margin-top: 8px; font-size: 11px; color: var(--c-text-3); }
-
-    /* ══ TOAST ═════════════════════════════════════════════════════════════════ */
-    .toast-wrap {
-      position: fixed; bottom: 18px; right: 18px; z-index: 100;
-      display: flex; flex-direction: column; gap: 7px;
-      max-width: min(370px, calc(100vw - 36px));
-    }
-    .toast {
-      display: flex; align-items: flex-start; gap: 9px;
-      padding: 11px 14px; border-radius: var(--r);
-      box-shadow: var(--shadow-l);
-      animation: toastIn .2s ease;
-      font-size: 13px; line-height: 1.4;
-    }
+    /* ── TOAST ──────────────────────────────────────────────── */
+    .toast-wrap { position: fixed; bottom: 18px; right: 18px; z-index: 100; display: flex; flex-direction: column; gap: 7px; max-width: min(420px, calc(100vw - 36px)); }
+    .toast { display: flex; align-items: flex-start; gap: 9px; padding: 11px 14px; border-radius: var(--r); box-shadow: var(--sh-l); animation: toastIn .2s ease; font-size: 13px; line-height: 1.4; }
     @keyframes toastIn { from{opacity:0;transform:translateX(16px)} to{opacity:1;transform:translateX(0)} }
-    .toast.ok   { background: #F0FAF5; border: 1px solid #86EFAC; color: var(--c-green); }
-    .toast.err  { background: #FFF0F0; border: 1px solid #FCA5A5; color: var(--c-red); }
-    .toast.warn { background: #FFFBEB; border: 1px solid #FCD34D; color: var(--c-amber); }
+    .toast.ok   { background: #F0FAF5; border: 1px solid #86EFAC; color: var(--grn); }
+    .toast.err  { background: #FFF0F0; border: 1px solid #FCA5A5; color: var(--red); }
+    .toast.warn { background: #FFFBEB; border: 1px solid #FCD34D; color: var(--amb); }
     .toast-ico  { font-size: 15px; flex-shrink: 0; }
-    .toast-msg  { flex: 1; }
+    .toast-msg  { flex: 1; word-break: break-word; }
 
-    /* ══ NEW ORDER BANNER ══════════════════════════════════════════════════════ */
-    .new-banner {
-      display: none; position: fixed;
-      top: 68px; left: 50%; transform: translateX(-50%);
-      z-index: 50; padding: 9px 20px;
-      background: var(--c-amber); color: #fff;
-      border-radius: 999px; font-size: 13px; font-weight: 700;
-      box-shadow: var(--shadow-l); cursor: pointer;
-      animation: bannerIn .35s ease;
-    }
+    /* ── LOADER ─────────────────────────────────────────────── */
+    .p-loader { flex: 1; display: flex; align-items: center; justify-content: center; gap: 10px; color: var(--txt3); font-size: 14px; }
+    .p-loader-spin { width: 20px; height: 20px; border: 2px solid var(--brd); border-top-color: var(--acc); border-radius: 50%; animation: rot .7s linear infinite; }
+
+    /* ── NEW ORDER BANNER ───────────────────────────────────── */
+    .new-banner { display: none; position: fixed; top: 68px; left: 50%; transform: translateX(-50%); z-index: 50; padding: 9px 20px; background: var(--amb); color: #fff; border-radius: 999px; font-size: 13px; font-weight: 700; box-shadow: var(--sh-l); cursor: pointer; animation: bIn .35s ease; }
     .new-banner.show { display: block; }
-    @keyframes bannerIn {
-      from { opacity:0; transform: translateX(-50%) scale(.85); }
-      to   { opacity:1; transform: translateX(-50%) scale(1); }
-    }
+    @keyframes bIn { from{opacity:0;transform:translateX(-50%) scale(.85)} to{opacity:1;transform:translateX(-50%) scale(1)} }
 
-    /* ══ LOADER ════════════════════════════════════════════════════════════════ */
-    .panel-loader {
-      flex: 1; display: flex; align-items: center; justify-content: center;
-      gap: 10px; color: var(--c-text-3); font-size: 14px;
-    }
-    .panel-loader-spin {
-      width: 20px; height: 20px;
-      border: 2px solid var(--c-border);
-      border-top-color: var(--c-accent);
-      border-radius: 50%; animation: rot .7s linear infinite;
-    }
-
-    /* ══ RESPONSIVE ════════════════════════════════════════════════════════════ */
+    /* ── RESPONSIVE ─────────────────────────────────────────── */
     @media (max-width: 1050px) { .board { grid-template-columns: repeat(2, 1fr); } }
     @media (max-width: 700px)  {
       .board { grid-template-columns: 1fr; padding: 10px; }
-      .topbar, .hist-bar { padding: 0 12px; }
-      .tb-addr, .tb-sep  { display: none; }
-      .hcard-row { grid-template-columns: 50px 1fr auto; }
-      .hcard-name + .hcard-phone, .hcard-row > .pill { display: none; }
-      .courier-grid { padding: 12px; }
+      .topbar, .filter-bar { padding: 0 12px; }
+      .tb-addr, .tb-sep { display: none; }
+      .hcard-row { grid-template-columns: 46px 1fr 80px 18px; }
+      .hcard-row .pill { display: none; }
+      .cour-grid { padding: 12px; }
     }
   </style>
 </head>
@@ -541,7 +294,7 @@
   {{ couriers|json_script:"d-couriers" }}
   {% csrf_token %}
 
-  <!-- ══ TOPBAR ════════════════════════════════════════════════════════════════ -->
+  <!-- TOPBAR -->
   <header class="topbar">
     <div class="tb-logo">☕</div>
     <div>
@@ -556,188 +309,150 @@
     <div class="tb-right">
       <span class="tb-clock" id="clock">--:--</span>
       <span class="ws-badge" id="ws-badge">
-        <span class="ws-dot"></span>
-        <span id="ws-txt">—</span>
+        <span class="ws-dot"></span><span id="ws-txt">—</span>
       </span>
     </div>
   </header>
 
-  <!-- ══ TABS ══════════════════════════════════════════════════════════════════ -->
+  <!-- TABS -->
   <div class="tabbar">
-    <button class="tab active" data-tab="orders">
-      📋 Заказы <span class="tab-badge" id="tb-orders">{{ active_count }}</span>
-    </button>
-    <button class="tab" data-tab="history">
-      📦 История <span class="tab-badge" id="tb-history">{{ delivered_today }}</span>
-    </button>
-    <button class="tab" data-tab="couriers">
-      🚴 Курьеры <span class="tab-badge" id="tb-couriers">—</span>
-    </button>
+    <button class="tab active" data-tab="orders">📋 Заказы <span class="tb-badge" id="tb-orders">{{ active_count }}</span></button>
+    <button class="tab" data-tab="history">📦 История <span class="tb-badge" id="tb-history">{{ delivered_today }}</span></button>
+    <button class="tab" data-tab="couriers">🚴 Курьеры <span class="tb-badge" id="tb-couriers">—</span></button>
   </div>
 
-  <!-- ══ PANEL: ORDERS ═════════════════════════════════════════════════════════ -->
+  <!-- PANEL: ORDERS -->
   <div class="panel active" id="panel-orders">
-    <!-- stats bar -->
     <div class="statsbar">
-      <div class="stat">
-        <div class="stat-icon si-new">🔔</div>
-        <div><div class="stat-val" id="s-accepted">0</div><div class="stat-label">Новые</div></div>
-      </div>
-      <div class="stat">
-        <div class="stat-icon si-ready">✅</div>
-        <div><div class="stat-val" id="s-ready">0</div><div class="stat-label">Готовые</div></div>
-      </div>
-      <div class="stat">
-        <div class="stat-icon si-way">🚴</div>
-        <div><div class="stat-val" id="s-on_the_way">0</div><div class="stat-label">В пути</div></div>
-      </div>
-      <div class="stat">
-        <div class="stat-icon si-done">📦</div>
-        <div><div class="stat-val">{{ delivered_today }}</div><div class="stat-label">Выдано сегодня</div></div>
-      </div>
-      <div class="stat">
-        <div class="stat-icon si-rev">💰</div>
-        <div><div class="stat-val">{{ revenue_today|floatformat:0 }} с</div><div class="stat-label">Выручка</div></div>
-      </div>
+      <div class="stat"><div class="stat-ico si-n">🔔</div><div><div class="stat-val" id="s-accepted">0</div><div class="stat-label">Новые</div></div></div>
+      <div class="stat"><div class="stat-ico si-r">✅</div><div><div class="stat-val" id="s-ready">0</div><div class="stat-label">Готовые</div></div></div>
+      <div class="stat"><div class="stat-ico si-w">🚴</div><div><div class="stat-val" id="s-on_the_way">0</div><div class="stat-label">В пути</div></div></div>
+      <div class="stat"><div class="stat-ico si-d">📦</div><div><div class="stat-val">{{ delivered_today }}</div><div class="stat-label">Выдано сегодня</div></div></div>
+      <div class="stat"><div class="stat-ico si-v">💰</div><div><div class="stat-val">{{ revenue_today|floatformat:0 }} с</div><div class="stat-label">Выручка</div></div></div>
     </div>
-    <!-- kanban -->
+
+    <!-- filter bar -->
+    <div class="filter-bar">
+      <span class="filter-label">Показать:</span>
+      <button class="fbtn active" data-filter="all">Все</button>
+      <button class="fbtn f-pick" data-filter="pickup">🏃 Самовывоз</button>
+      <button class="fbtn f-del"  data-filter="delivery">🚴 Доставка</button>
+    </div>
+
     <div class="board">
       <section class="lane" data-lane="accepted">
         <div class="lane-head">
-          <div class="lane-title-row"><span class="lane-icon">🔔</span><span class="lane-title">Новые</span></div>
-          <span class="lane-count" data-cnt="accepted">0</span>
+          <div class="lane-title-row"><span class="lane-icon">🔔</span><span class="lane-title">Новые заказы</span></div>
+          <span class="lane-cnt" data-cnt="accepted">0</span>
         </div>
         <div class="lane-body" data-body="accepted"></div>
       </section>
       <section class="lane" data-lane="ready">
         <div class="lane-head">
           <div class="lane-title-row"><span class="lane-icon">✅</span><span class="lane-title">Готовые</span></div>
-          <span class="lane-count" data-cnt="ready">0</span>
+          <span class="lane-cnt" data-cnt="ready">0</span>
         </div>
         <div class="lane-body" data-body="ready"></div>
       </section>
       <section class="lane" data-lane="on_the_way">
         <div class="lane-head">
           <div class="lane-title-row"><span class="lane-icon">🚴</span><span class="lane-title">В доставке</span></div>
-          <span class="lane-count" data-cnt="on_the_way">0</span>
+          <span class="lane-cnt" data-cnt="on_the_way">0</span>
         </div>
         <div class="lane-body" data-body="on_the_way"></div>
       </section>
     </div>
   </div>
 
-  <!-- ══ PANEL: HISTORY ════════════════════════════════════════════════════════ -->
+  <!-- PANEL: HISTORY -->
   <div class="panel" id="panel-history">
     <div class="hist-bar">
       <div class="hist-stats">
         <div class="hist-stat">Выдано: <strong id="h-count">—</strong></div>
         <div class="hist-stat">Выручка: <strong id="h-rev">—</strong></div>
       </div>
-      <input class="search-input" id="hist-search" placeholder="🔍 #номер или телефон" type="search">
+      <input class="srch" id="hist-search" placeholder="🔍 Поиск по #id, телефону, имени" type="search">
       <button class="btn btn-ghost btn-sm" id="hist-refresh">↻ Обновить</button>
     </div>
     <div class="hist-list" id="hist-list">
-      <div class="panel-loader"><div class="panel-loader-spin"></div> Загрузка…</div>
+      <div class="p-loader"><div class="p-loader-spin"></div>Загрузка…</div>
     </div>
   </div>
 
-  <!-- ══ PANEL: COURIERS ═══════════════════════════════════════════════════════ -->
+  <!-- PANEL: COURIERS -->
   <div class="panel" id="panel-couriers">
-    <div class="courier-panel-bar">
+    <div class="cour-bar">
       <h2>Курьеры кафе</h2>
-      <button class="btn btn-ghost btn-sm" id="courier-refresh">↻ Обновить</button>
+      <button class="btn btn-ghost btn-sm" id="cour-refresh">↻ Обновить</button>
     </div>
-    <div class="courier-grid" id="courier-grid">
-      <div class="panel-loader"><div class="panel-loader-spin"></div> Загрузка…</div>
+    <div class="cour-grid" id="cour-grid">
+      <div class="p-loader"><div class="p-loader-spin"></div>Загрузка…</div>
     </div>
   </div>
 
-  <!-- ══ OVERLAYS ══════════════════════════════════════════════════════════════ -->
   <div class="new-banner" id="new-banner">🔔 Новый заказ!</div>
   <div class="toast-wrap" id="toasts"></div>
 
   <script>
   (() => {
     'use strict';
-
-    // ── Config ────────────────────────────────────────────────────────────────
     const URGENT = 20, WARN = 10;
     const STATUSES = ['accepted', 'ready', 'on_the_way'];
     const csrf = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
-    // ── State ─────────────────────────────────────────────────────────────────
     const S = {
       orders:   JSON.parse(document.getElementById('d-orders').textContent),
       couriers: JSON.parse(document.getElementById('d-couriers').textContent),
-      history:  null,       // lazy loaded
-      cStatus:  null,       // lazy loaded
+      history:  null,
+      cStatus:  null,
       tab:      'orders',
-      histFilter: '',
+      filter:   'all',  // all | pickup | delivery
     };
 
-    // ── Clock ─────────────────────────────────────────────────────────────────
+    // ── Clock ──────────────────────────────────────────────
     function tick() {
-      const now = new Date();
       document.getElementById('clock').textContent =
-        now.toLocaleTimeString('ru-RU', { hour:'2-digit', minute:'2-digit' });
+        new Date().toLocaleTimeString('ru-RU', { hour:'2-digit', minute:'2-digit' });
     }
     tick(); setInterval(tick, 10000);
 
-    // ── Utils ─────────────────────────────────────────────────────────────────
-    const esc = s => String(s ?? '')
-      .replace(/&/g,'&amp;').replace(/</g,'&lt;')
-      .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    // ── Utils ──────────────────────────────────────────────
+    const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    const mins = iso => iso ? Math.floor((Date.now() - new Date(iso)) / 60000) : 0;
+    const fmtM = m => m < 60 ? `${m} мин` : `${Math.floor(m/60)} ч ${m%60 ? m%60+' мин' : ''}`.trim();
+    const tCls = m => m >= URGENT ? 'alert' : m >= WARN ? 'warn' : '';
+    const initials = n => (n||'?').trim().split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
 
-    function mins(iso) {
-      if (!iso) return 0;
-      return Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
-    }
-
-    function fmtMins(m) {
-      if (m < 60) return `${m} мин`;
-      const h = Math.floor(m/60), r = m%60;
-      return r ? `${h} ч ${r} мин` : `${h} ч`;
-    }
-
-    function timerCls(m) {
-      return m >= URGENT ? 'alert' : m >= WARN ? 'warn' : '';
-    }
-
-    function initials(name) {
-      return (name || '?').trim().split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
-    }
-
-    // ── Sound ─────────────────────────────────────────────────────────────────
+    // ── Sound ──────────────────────────────────────────────
     function beep() {
       try {
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        [0, 0.2].forEach(d => {
+        [0, 0.22].forEach(d => {
           const o = ctx.createOscillator(), g = ctx.createGain();
           o.connect(g); g.connect(ctx.destination);
           o.frequency.value = 900; o.type = 'sine';
-          g.gain.setValueAtTime(0, ctx.currentTime + d);
-          g.gain.linearRampToValueAtTime(.25, ctx.currentTime + d + .02);
-          g.gain.exponentialRampToValueAtTime(.001, ctx.currentTime + d + .3);
-          o.start(ctx.currentTime + d); o.stop(ctx.currentTime + d + .3);
+          g.gain.setValueAtTime(0, ctx.currentTime+d);
+          g.gain.linearRampToValueAtTime(.25, ctx.currentTime+d+.02);
+          g.gain.exponentialRampToValueAtTime(.001, ctx.currentTime+d+.3);
+          o.start(ctx.currentTime+d); o.stop(ctx.currentTime+d+.3);
         });
       } catch(_) {}
     }
 
-    // ── Toasts ────────────────────────────────────────────────────────────────
-    function toast(msg, type = 'ok') {
+    // ── Toasts ─────────────────────────────────────────────
+    function toast(msg, type='ok') {
       const ico = { ok:'✅', err:'❌', warn:'⚠️' }[type];
       const el = document.createElement('div');
       el.className = `toast ${type}`;
       el.innerHTML = `<span class="toast-ico">${ico}</span><span class="toast-msg">${esc(msg)}</span>`;
       document.getElementById('toasts').append(el);
-      setTimeout(() => el.remove(), 4200);
+      setTimeout(() => el.remove(), 5000);
     }
 
-    // ── Tabs ──────────────────────────────────────────────────────────────────
-    document.querySelectorAll('.tab').forEach(btn => {
-      btn.addEventListener('click', () => switchTab(btn.dataset.tab));
-    });
-
+    // ── Tabs ───────────────────────────────────────────────
+    document.querySelectorAll('.tab').forEach(b =>
+      b.addEventListener('click', () => switchTab(b.dataset.tab))
+    );
     function switchTab(name) {
       S.tab = name;
       document.querySelectorAll('.tab').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
@@ -746,19 +461,35 @@
       if (name === 'couriers' && S.cStatus === null) loadCouriers();
     }
 
-    // ══ ORDERS TAB ═══════════════════════════════════════════════════════════
+    // ── Filter ─────────────────────────────────────────────
+    document.querySelectorAll('.fbtn').forEach(b => {
+      b.addEventListener('click', () => {
+        S.filter = b.dataset.filter;
+        document.querySelectorAll('.fbtn').forEach(x => x.classList.remove('active'));
+        b.classList.add('active');
+        renderBoard();
+      });
+    });
+
+    function filteredOrders() {
+      if (S.filter === 'all') return S.orders;
+      return S.orders.filter(o => o.delivery_type === S.filter);
+    }
+
+    // ══ ORDERS TAB ══════════════════════════════════════════
 
     function renderItems(items) {
       if (!items.length) return '';
-      return `<div class="items-block">
-        <div class="items-hd">Состав</div>
+      return `<div class="items-wrap">
+        <div class="items-hd">Состав заказа</div>
         ${items.map(it => {
-          const opts = it.options.map(o => o.value || o).join(', ');
+          const opts = it.options.map(o => o.value || o).join(' · ');
           return `<div class="item-r">
             <div>
               <span class="item-name">${esc(it.product_title)}</span>
               <span class="item-qty"> × ${it.quantity}</span>
-              ${opts ? `<div class="item-opts">${esc(opts)}</div>` : ''}
+              ${opts ? `<div class="item-meta">📌 ${esc(opts)}</div>` : ''}
+              ${it.comment ? `<div class="item-comment">💬 ${esc(it.comment)}</div>` : ''}
             </div>
             <span class="item-price">${esc(it.final_price)} с</span>
           </div>`;
@@ -776,18 +507,20 @@
           <span class="spin"></span><span class="btn-tx">📦 Выдать клиенту</span></button>`;
       }
       if (o.status === 'ready' && o.delivery_type === 'delivery') {
-        const opts = S.couriers.map(c =>
-          `<option value="${c.id}">${esc(c.name)}</option>`).join('');
         if (!S.couriers.length) {
-          return `<div style="font-size:12px;color:var(--c-text-3);text-align:center;padding:4px 0">
-            Нет курьеров — добавьте в CafeMembership</div>`;
+          return `<div style="font-size:12px;color:var(--txt3);text-align:center;padding:4px 0">
+            Нет доступных курьеров</div>`;
         }
-        return `<div class="courier-row">
-          <select class="c-select" data-csel="${o.id}">
+        const opts = S.couriers.map(c =>
+          `<option value="${c.id}">${esc(c.name)} (${esc(c.phone_number)})</option>`
+        ).join('');
+        return `<div class="c-row">
+          <select class="c-sel" data-csel="${o.id}">
             <option value="">— Выбрать курьера —</option>${opts}
           </select>
           <button class="btn btn-blue" data-act="assign-courier" data-oid="${o.id}">
-            <span class="spin"></span><span class="btn-tx">🚴</span></button>
+            <span class="spin"></span><span class="btn-tx">🚴</span>
+          </button>
         </div>`;
       }
       if (o.status === 'on_the_way' && o.delivery_type === 'delivery') {
@@ -798,52 +531,48 @@
     }
 
     function renderCard(o) {
-      const elapsed = mins(o.created_at_iso);
-      const tCls    = timerCls(elapsed);
-      const isUrgent = elapsed >= URGENT;
+      const elapsed  = mins(o.created_at_iso);
       const isDel    = o.delivery_type === 'delivery';
       const customer = esc(o.customer.name || o.customer.phone_number);
 
-      return `<article class="ocard ${isUrgent ? 'urgent' : ''}" data-card="${o.id}">
+      return `<article class="ocard ${isDel ? 'is-delivery' : 'is-pickup'} ${elapsed >= URGENT ? 'urgent' : ''}" data-card="${o.id}">
         <div class="ocard-head">
           <div class="ocard-id-row">
             <span class="ocard-id">#${o.id}</span>
-            <span class="pill ${isDel ? 'pill-delivery' : 'pill-pickup'}">
-              ${isDel ? '🚴 Доставка' : '🏃 Самовывоз'}
-            </span>
+            <span class="pill ${isDel ? 'p-del' : 'p-pick'}">${isDel ? '🚴 Доставка' : '🏃 Самовывоз'}</span>
           </div>
-          <span class="pill pill-timer ${tCls}" data-tiso="${esc(o.created_at_iso)}">⏱ ${fmtMins(elapsed)}</span>
+          <span class="pill p-timer ${tCls(elapsed)}" data-tiso="${esc(o.created_at_iso)}">⏱ ${fmtM(elapsed)}</span>
         </div>
         <div class="ocard-body">
           <div class="irow">
-            <span class="irow-icon">👤</span>
+            <span class="irow-ico">👤</span>
             <div>
               <div class="irow-lbl">Клиент</div>
               <div class="irow-val">${customer}</div>
-              <div style="font-size:11px;color:var(--c-text-3)">${esc(o.customer.phone_number)}</div>
+              <div class="irow-sub">${esc(o.customer.phone_number)}</div>
             </div>
           </div>
           ${isDel ? `<div class="irow">
-            <span class="irow-icon">📍</span>
+            <span class="irow-ico">📍</span>
             <div>
               <div class="irow-lbl">Адрес доставки</div>
-              <div class="irow-val">${esc(o.address || 'Не указан')}</div>
-              ${o.delivery_time ? `<div style="font-size:11px;color:var(--c-text-3)">Время: ${esc(o.delivery_time)}</div>` : ''}
+              <div class="irow-val">${esc(o.address || '—')}</div>
+              ${o.delivery_time ? `<div class="irow-sub">🕐 К ${esc(o.delivery_time)}</div>` : ''}
             </div>
           </div>` : ''}
           <div class="irow">
-            <span class="irow-icon">🕐</span>
+            <span class="irow-ico">🕐</span>
             <div>
               <div class="irow-lbl">Принят</div>
               <div class="irow-val">${esc(o.created_at)}</div>
             </div>
           </div>
           ${o.courier && o.courier.name ? `<div class="irow">
-            <span class="irow-icon">🚴</span>
+            <span class="irow-ico">🚴</span>
             <div>
               <div class="irow-lbl">Курьер</div>
               <div class="irow-val">${esc(o.courier.name)}</div>
-              <div style="font-size:11px;color:var(--c-text-3)">${esc(o.courier.phone_number)}</div>
+              <div class="irow-sub">${esc(o.courier.phone_number)}</div>
             </div>
           </div>` : ''}
           ${renderItems(o.items)}
@@ -857,31 +586,31 @@
     }
 
     function renderBoard(newIds) {
+      const orders = filteredOrders();
       const grp = Object.fromEntries(STATUSES.map(s => [s, []]));
-      S.orders.forEach(o => { if (grp[o.status]) grp[o.status].push(o); });
+      orders.forEach(o => { if (grp[o.status]) grp[o.status].push(o); });
 
       STATUSES.forEach(s => {
         const list = grp[s];
         document.querySelector(`[data-cnt="${s}"]`).textContent = list.length;
         document.querySelector(`[data-body="${s}"]`).innerHTML =
-          list.length ? list.map(renderCard).join('') :
-          '<div class="empty"><div class="empty-ico">📭</div>Нет заказов</div>';
+          list.length
+            ? list.map(renderCard).join('')
+            : '<div class="empty"><div class="empty-ico">📭</div>Нет заказов</div>';
         const si = document.getElementById(`s-${s}`);
         if (si) si.textContent = list.length;
       });
 
-      const total = S.orders.length;
-      document.getElementById('tb-orders').textContent = total;
+      document.getElementById('tb-orders').textContent = S.orders.length;
       updateTimers();
-
       if (newIds && newIds.size) { beep(); showBanner(); }
     }
 
     function updateTimers() {
       document.querySelectorAll('[data-tiso]').forEach(el => {
         const m = mins(el.dataset.tiso);
-        el.textContent = '⏱ ' + fmtMins(m);
-        el.className = `pill pill-timer ${timerCls(m)}`;
+        el.textContent = '⏱ ' + fmtM(m);
+        el.className = `pill p-timer ${tCls(m)}`;
         el.closest('.ocard')?.classList.toggle('urgent', m >= URGENT);
       });
     }
@@ -894,12 +623,12 @@
       setTimeout(() => b.classList.remove('show'), 5000);
     }
 
-    // ── Action fetch ──────────────────────────────────────────────────────────
+    // ── Action fetch ───────────────────────────────────────
     async function doAction(btn, oid, act) {
       const fd = new FormData();
       if (act === 'assign-courier') {
         const sel = document.querySelector(`[data-csel="${oid}"]`);
-        if (!sel?.value) { toast('Выберите курьера', 'warn'); return; }
+        if (!sel?.value) { toast('Выберите курьера из списка', 'warn'); return; }
         fd.append('courier_id', sel.value);
       }
       btn.classList.add('loading'); btn.disabled = true;
@@ -909,17 +638,26 @@
           headers: { 'X-CSRFToken': csrf, 'X-Requested-With': 'XMLHttpRequest' },
           body: fd,
         });
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok) { toast(data.detail || 'Ошибка', 'err'); return; }
+        // parse response safely
+        const text = await res.text();
+        let data = {};
+        try { data = JSON.parse(text); } catch(_) {}
+
+        if (!res.ok) {
+          toast(data.detail || `Ошибка ${res.status}`, 'err');
+          return;
+        }
         if (Array.isArray(data.orders)) {
           S.orders = data.orders;
           renderBoard();
           toast('Статус обновлён', 'ok');
-          // invalidate history
           if (S.history !== null) { S.history = null; if (S.tab === 'history') loadHistory(); }
         }
-      } catch(_) { toast('Нет связи с сервером', 'err'); }
-      finally { btn.classList.remove('loading'); btn.disabled = false; }
+      } catch(_) {
+        toast('Нет связи с сервером', 'err');
+      } finally {
+        btn.classList.remove('loading'); btn.disabled = false;
+      }
     }
 
     document.addEventListener('click', e => {
@@ -929,66 +667,71 @@
       doAction(btn, btn.dataset.oid, btn.dataset.act);
     });
 
-    // ══ HISTORY TAB ══════════════════════════════════════════════════════════
+    // ══ HISTORY TAB ═════════════════════════════════════════
 
     async function loadHistory() {
       const list = document.getElementById('hist-list');
-      list.innerHTML = '<div class="panel-loader"><div class="panel-loader-spin"></div> Загрузка…</div>';
+      list.innerHTML = '<div class="p-loader"><div class="p-loader-spin"></div>Загрузка…</div>';
       try {
-        const res = await fetch('/crm/api/history/', { credentials: 'same-origin' });
-        const data = await res.json();
+        const res = await fetch('/crm/api/history/', { credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+        const text = await res.text();
+        let data = {};
+        try { data = JSON.parse(text); } catch(_) {}
+        if (!res.ok) { list.innerHTML = `<div class="p-loader" style="color:var(--red)">${esc(data.detail || 'Ошибка')}</div>`; return; }
         S.history = data.orders;
         document.getElementById('h-count').textContent = data.count;
-        document.getElementById('h-rev').textContent   = data.revenue.toLocaleString('ru-RU') + ' сом';
+        document.getElementById('h-rev').textContent   = (data.revenue || 0).toLocaleString('ru-RU') + ' сом';
         document.getElementById('tb-history').textContent = data.count;
         renderHistory();
       } catch(_) {
-        list.innerHTML = '<div class="panel-loader" style="color:var(--c-red)">Ошибка загрузки</div>';
+        list.innerHTML = '<div class="p-loader" style="color:var(--red)">Ошибка загрузки</div>';
       }
     }
 
     function renderHistory() {
-      const q = S.histFilter.toLowerCase();
+      const q = (document.getElementById('hist-search').value || '').toLowerCase();
       const filtered = (S.history || []).filter(o =>
-        !q || String(o.id).includes(q) || o.customer.phone_number.includes(q) || o.customer.name.toLowerCase().includes(q)
+        !q || String(o.id).includes(q)
+          || o.customer.phone_number.includes(q)
+          || o.customer.name.toLowerCase().includes(q)
       );
       const list = document.getElementById('hist-list');
       if (!filtered.length) {
-        list.innerHTML = '<div class="panel-loader" style="color:var(--c-text-3)">Нет заказов</div>';
+        list.innerHTML = '<div class="p-loader" style="color:var(--txt3)">Заказов нет</div>';
         return;
       }
       list.innerHTML = filtered.map(o => {
         const isDel = o.delivery_type === 'delivery';
         const customer = esc(o.customer.name || o.customer.phone_number);
         const items = o.items.map(it => {
-          const opts = it.options.map(op => op.value || op).join(', ');
-          return `<div class="hcard-item-r">
+          const opts = it.options.map(op => op.value || op).join(' · ');
+          return `<div class="h-item-r">
             <div>
-              <span style="font-weight:600">${esc(it.product_title)}</span> × ${it.quantity}
-              ${opts ? `<div style="font-size:10px;color:var(--c-text-3)">${esc(opts)}</div>` : ''}
+              <strong>${esc(it.product_title)}</strong> × ${it.quantity}
+              ${opts ? `<div style="font-size:10px;color:var(--txt3)">${esc(opts)}</div>` : ''}
+              ${it.comment ? `<div style="font-size:10px;color:var(--acc)">💬 ${esc(it.comment)}</div>` : ''}
             </div>
-            <span style="font-weight:700;color:var(--c-accent)">${esc(it.final_price)} с</span>
+            <span style="font-weight:700;color:var(--acc)">${esc(it.final_price)} с</span>
           </div>`;
         }).join('');
-
         return `<div class="hcard">
           <div class="hcard-row" onclick="this.closest('.hcard').classList.toggle('open')">
             <span class="hcard-time">${esc(o.delivered_at)}</span>
             <div>
               <div><span class="hcard-id">#${o.id}</span></div>
               <div class="hcard-name">${customer}</div>
-              <div class="hcard-phone">${esc(o.customer.phone_number)}</div>
+              <div class="hcard-ph">${esc(o.customer.phone_number)}</div>
             </div>
-            <span class="pill ${isDel ? 'pill-delivery' : 'pill-pickup'}">${esc(o.delivery_type_label)}</span>
-            <div style="font-size:14px;font-weight:800;color:var(--c-accent)">${esc(o.total_price)} с</div>
-            <span class="hcard-chevron">▼</span>
+            <span class="pill ${isDel ? 'p-del' : 'p-pick'}" style="align-self:center">${esc(o.delivery_type_label)}</span>
+            <span class="hcard-price">${esc(o.total_price)} с</span>
+            <span class="hcard-chev">▼</span>
           </div>
-          <div class="hcard-items">
+          <div class="hcard-body">
             <div class="hcard-inner">
               ${items}
-              ${o.courier_name ? `<div style="margin-top:6px;font-size:11px;color:var(--c-text-3)">🚴 Курьер: <strong>${esc(o.courier_name)}</strong></div>` : ''}
-              <div class="hcard-total-row">
-                <span style="color:var(--c-text-3)">Принят: ${esc(o.created_at)}</span>
+              ${o.courier_name ? `<div style="margin-top:6px;font-size:11px;color:var(--txt3)">🚴 Курьер: <strong>${esc(o.courier_name)}</strong></div>` : ''}
+              <div class="hcard-footer">
+                <span style="color:var(--txt3)">Принят: ${esc(o.created_at)}</span>
                 <strong>${esc(o.total_price)} сом</strong>
               </div>
             </div>
@@ -997,64 +740,66 @@
       }).join('');
     }
 
-    document.getElementById('hist-search').addEventListener('input', e => {
-      S.histFilter = e.target.value;
+    document.getElementById('hist-search').addEventListener('input', () => {
       if (S.history !== null) renderHistory();
     });
     document.getElementById('hist-refresh').addEventListener('click', () => {
       S.history = null; loadHistory();
     });
 
-    // ══ COURIERS TAB ══════════════════════════════════════════════════════════
+    // ══ COURIERS TAB ════════════════════════════════════════
 
     async function loadCouriers() {
-      const grid = document.getElementById('courier-grid');
-      grid.innerHTML = '<div class="panel-loader"><div class="panel-loader-spin"></div> Загрузка…</div>';
+      const grid = document.getElementById('cour-grid');
+      grid.innerHTML = '<div class="p-loader"><div class="p-loader-spin"></div>Загрузка…</div>';
       try {
-        const res = await fetch('/crm/api/couriers/', { credentials: 'same-origin' });
-        const data = await res.json();
+        const res = await fetch('/crm/api/couriers/', { credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+        const text = await res.text();
+        let data = {};
+        try { data = JSON.parse(text); } catch(_) {}
+        if (!res.ok) { grid.innerHTML = `<div class="p-loader" style="color:var(--red)">${esc(data.detail || 'Ошибка')}</div>`; return; }
         S.cStatus = data.couriers;
         document.getElementById('tb-couriers').textContent = data.couriers.length;
         renderCouriers();
       } catch(_) {
-        grid.innerHTML = '<div class="panel-loader" style="color:var(--c-red)">Ошибка загрузки</div>';
+        grid.innerHTML = '<div class="p-loader" style="color:var(--red)">Ошибка загрузки</div>';
       }
     }
 
     function renderCouriers() {
-      const grid = document.getElementById('courier-grid');
+      const grid = document.getElementById('cour-grid');
       const list = S.cStatus || [];
       if (!list.length) {
         grid.innerHTML = `<div class="empty" style="grid-column:1/-1">
-          <div class="empty-ico">🚴</div>Нет курьеров. Добавьте сотрудников с ролью курьера.</div>`;
+          <div class="empty-ico">🚴</div>
+          Нет курьеров.<br>Добавьте пользователей с флагом <strong>is_courier</strong> и привяжите к кафе через CafeMembership.
+        </div>`;
         return;
       }
-      grid.innerHTML = list.map(c => {
-        const ini = initials(c.name);
-        const busy = c.is_busy;
-        return `<div class="ccard">
-          <div class="ccard-avatar ${busy ? 'av-busy' : 'av-free'}">${ini}</div>
+      grid.innerHTML = list.map(c => `
+        <div class="ccard">
+          <div class="ccard-av ${c.is_busy ? 'av-busy' : 'av-free'}">${initials(c.name)}</div>
           <div class="ccard-body">
             <div class="ccard-name">${esc(c.name)}</div>
             <div class="ccard-phone">${esc(c.phone_number)}</div>
-            <div class="ccard-status ${busy ? 'cstatus-busy' : 'cstatus-free'}">
-              ${busy ? '🟡 В доставке' : '🟢 Свободен'}
+            <div class="ccard-status ${c.is_busy ? 'cs-busy' : 'cs-free'}">
+              ${c.is_busy ? '🟡 В доставке' : '🟢 Свободен'}
             </div>
-            ${busy && c.active_order ? `<div class="ccard-order">
+            ${c.is_busy && c.active_order ? `<div class="ccard-order">
               <strong>#${c.active_order.id}</strong> — ${esc(c.active_order.customer)}<br>
               ${c.active_order.address ? `📍 ${esc(c.active_order.address)}` : ''}
+              <span style="float:right;color:var(--txt3)">${esc(c.active_order.created_at)}</span>
             </div>` : ''}
-            <div class="ccard-stats">Доставок сегодня: ${c.delivered_today}</div>
+            <div class="ccard-stats">Доставок сегодня: <strong>${c.delivered_today}</strong></div>
           </div>
-        </div>`;
-      }).join('');
+        </div>`).join('');
     }
 
-    document.getElementById('courier-refresh').addEventListener('click', () => {
+    document.getElementById('cour-refresh').addEventListener('click', () => {
       S.cStatus = null; loadCouriers();
     });
 
-    // ══ WEBSOCKET ═════════════════════════════════════════════════════════════
+    // ══ WEBSOCKET ════════════════════════════════════════════
 
     function setWs(text, cls) {
       document.getElementById('ws-badge').className = `ws-badge ${cls}`;
@@ -1075,13 +820,12 @@
         S.orders = payload.orders;
         const newIds = new Set(payload.orders.filter(o => !prev.has(o.id) && o.status === 'accepted').map(o => o.id));
         renderBoard(newIds);
-        // invalidate history & couriers if they're loaded
         if (S.history !== null) { S.history = null; if (S.tab === 'history') loadHistory(); }
         if (S.cStatus !== null) { S.cStatus = null; if (S.tab === 'couriers') loadCouriers(); }
       };
     }
 
-    // ── Init ──────────────────────────────────────────────────────────────────
+    // ── Init ──────────────────────────────────────────────
     renderBoard();
     connectWs();
   })();

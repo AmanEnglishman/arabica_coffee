@@ -78,7 +78,10 @@ class CreateOrderView(APIView):
                     order=order,
                     product=cart_item.product,
                     quantity=cart_item.quantity,
-                    product_options={"options": options},
+                    product_options={
+                        "options": options,
+                        "comment": cart_item.comment or "",
+                    },
                     final_price=item_price,
                 )
 
