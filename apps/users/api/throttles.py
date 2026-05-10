@@ -2,10 +2,16 @@ from rest_framework.throttling import AnonRateThrottle
 
 
 class SendCodeThrottle(AnonRateThrottle):
-    rate = "3/10min"
+    """3 запроса на отправку кода за 10 минут."""
     scope = "send_code"
+
+    def parse_rate(self, rate):
+        return 3, 600  # (num_requests, duration_seconds)
 
 
 class VerifyCodeThrottle(AnonRateThrottle):
-    rate = "5/10min"
+    """5 попыток верификации за 10 минут."""
     scope = "verify_code"
+
+    def parse_rate(self, rate):
+        return 5, 600
