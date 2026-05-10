@@ -6,8 +6,9 @@ class SendCodeThrottle(AnonRateThrottle):
     scope = "send_code"
 
     def __init__(self):
+        self.rate = "3/10m"       # нужен allow_request
         self.num_requests = 3
-        self.duration = 600  # 10 минут
+        self.duration = 600       # 10 минут в секундах
 
 
 class VerifyCodeThrottle(AnonRateThrottle):
@@ -15,5 +16,6 @@ class VerifyCodeThrottle(AnonRateThrottle):
     scope = "verify_code"
 
     def __init__(self):
+        self.rate = "5/10m"
         self.num_requests = 5
-        self.duration = 600  # 10 минут
+        self.duration = 600
