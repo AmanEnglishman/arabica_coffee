@@ -193,6 +193,17 @@ def get_today_stats(cafe):
     }
 
 
+# ── POS guest user ─────────────────────────────────────────────────────────────
+
+def get_or_create_guest_user(cafe):
+    phone = f"+00000{cafe.id:05d}"
+    user, _ = User.objects.get_or_create(
+        phone_number=phone,
+        defaults={"first_name": "Гость", "last_name": "", "is_phone_verified": False},
+    )
+    return user
+
+
 # ── WebSocket broadcast ────────────────────────────────────────────────────────
 
 def broadcast_cafe_orders(cafe_id):

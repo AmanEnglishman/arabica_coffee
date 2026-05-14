@@ -1,3 +1,5 @@
+import json
+
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum
 from django.http import JsonResponse
@@ -9,16 +11,20 @@ from django.db.models import Count
 from django.db.models.functions import ExtractHour
 
 from apps.order.crm_services import (
+    broadcast_cafe_orders,
     get_active_orders,
     get_cafe_couriers,
     get_completed_orders_today,
     get_couriers_with_status,
+    get_or_create_guest_user,
     get_staff_membership,
     get_today_stats,
     serialize_active_orders,
     serialize_completed_order,
 )
 from apps.order.models import CafeMembership, Order
+from apps.order.models.code import OrderItem
+from apps.menu.models.product import Product
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
@@ -208,6 +214,155 @@ def crm_order_action_view(request, order_id, action):
         return _orders_payload(membership.cafe)
 
     return JsonResponse({"detail": f"Неизвестное действие: {action}."}, status=404)
+
+
+# ── POS: page ──────────────────────────────────────────────────────────────────
+
+@login_required(login_url="/admin/login/")
+def crm_pos_view(request):
+    membership = get_staff_membership(request.user)
+    if membership is None:
+        return render(request, "crm/forbidden.html", status=403)
+    staff_name = (
+        " ".join(p for p in [request.user.first_name, request.user.last_name] if p)
+        or request.user.phone_number
+    )
+    return render(request, "crm/pos.html", {
+        "cafe": membership.cafe,
+        "staff_name": staff_name,
+    })
+
+
+# ── POS: menu API ──────────────────────────────────────────────────────────────
+
+def crm_pos_menu_api(request):
+    membership, error = _get_membership(request)
+    if error:
+        return error
+
+    products = (
+        Product.objects
+        .filter(is_active=True)
+        .select_related("subcategory__category")
+        .prefetch_related("option_types__option_type__values")
+        .order_by("subcategory__category__id", "subcategory__id", "title")
+    )
+
+    categories = {}
+    for p in products:
+        cat = p.subcategory.category
+        sub = p.subcategory
+        if cat.id not in categories:
+            categories[cat.id] = {"id": cat.id, "title": cat.title, "subcategories": {}}
+        if sub.id not in categories[cat.id]["subcategories"]:
+            categories[cat.id]["subcategories"][sub.id] = {"id": sub.id, "title": sub.title, "products": []}
+
+        option_types = []
+        for pot in p.option_types.all():
+            ot = pot.option_type
+            option_types.append({
+                "id": ot.id,
+                "title": ot.title,
+                "values": [
+                    {"id": v.id, "value": v.value, "additional_cost": v.additional_cost}
+                    for v in ot.values.all()
+                ],
+            })
+
+        categories[cat.id]["subcategories"][sub.id]["products"].append({
+            "id": p.id,
+            "title": p.title,
+            "price": p.price,
+            "description": p.description,
+            "image": p.image.url if p.image else None,
+            "has_options": p.has_options,
+            "option_types": option_types,
+        })
+
+    result = []
+    for cat_data in categories.values():
+        cat_data["subcategories"] = list(cat_data["subcategories"].values())
+        result.append(cat_data)
+
+    return JsonResponse({"ok": True, "categories": result})
+
+
+# ── POS: create order ──────────────────────────────────────────────────────────
+
+def crm_pos_order_api(request):
+    if request.method != "POST":
+        return JsonResponse({"detail": "Method not allowed"}, status=405)
+
+    membership, error = _get_membership(request)
+    if error:
+        return error
+
+    try:
+        data = json.loads(request.body)
+    except (json.JSONDecodeError, ValueError):
+        return JsonResponse({"detail": "Неверный JSON"}, status=400)
+
+    items_data = data.get("items", [])
+    if not items_data:
+        return JsonResponse({"detail": "Корзина пуста"}, status=400)
+
+    complete_immediately = bool(data.get("complete_immediately", False))
+
+    prepared_items = []
+    total = 0
+
+    for item_data in items_data:
+        try:
+            product = Product.objects.get(id=item_data["product_id"], is_active=True)
+        except (Product.DoesNotExist, KeyError):
+            return JsonResponse({"detail": f"Продукт не найден"}, status=400)
+
+        try:
+            quantity = max(1, int(item_data.get("quantity", 1)))
+        except (ValueError, TypeError):
+            return JsonResponse({"detail": "Неверное количество"}, status=400)
+
+        options = item_data.get("options", [])
+        options_cost = sum(int(o.get("additional_cost", 0)) for o in options)
+        unit_price = product.price + options_cost
+        final_price = unit_price * quantity
+        total += final_price
+
+        prepared_items.append({
+            "product": product,
+            "quantity": quantity,
+            "final_price": final_price,
+            "product_options": {
+                "options": [{"type": o["type"], "value": o["value"]} for o in options],
+                "comment": item_data.get("comment", ""),
+            },
+        })
+
+    guest_user = get_or_create_guest_user(membership.cafe)
+
+    now = timezone.now()
+    status = "delivered" if complete_immediately else "accepted"
+    order = Order.objects.create(
+        user=guest_user,
+        cafe=membership.cafe,
+        status=status,
+        delivery_type="pickup",
+        total_price=total,
+        delivered_at=now if complete_immediately else None,
+    )
+
+    for item in prepared_items:
+        OrderItem.objects.create(
+            order=order,
+            product=item["product"],
+            quantity=item["quantity"],
+            final_price=item["final_price"],
+            product_options=item["product_options"],
+        )
+
+    broadcast_cafe_orders(membership.cafe.id)
+
+    return JsonResponse({"ok": True, "order_id": order.id, "total": total})
 
 
 # ── API: reports ───────────────────────────────────────────────────────────────

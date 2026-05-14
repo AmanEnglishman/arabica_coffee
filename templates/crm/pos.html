@@ -1,0 +1,821 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Касса — {{ cafe.name }}</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    button, select, input, textarea { font: inherit; }
+
+    :root {
+      --bg:      #EFEBE4;
+      --surf:    #FAF7F2;
+      --card:    #FFFFFF;
+      --brd:     #DDD5C8;
+      --brd2:    #EDE6DB;
+      --txt:     #1C110B;
+      --txt2:    #5A4636;
+      --txt3:    #9A867A;
+      --acc:     #7B3314;
+      --acc-h:   #5E2409;
+      --acc-l:   #F5EAE4;
+      --grn:     #1A6B3C;
+      --grn-bg:  #E3F4EC;
+      --amb:     #7A4D00;
+      --amb-bg:  #FEF3D0;
+      --red:     #8B1A1A;
+      --red-bg:  #FDE8E8;
+      --sh-s:    0 1px 3px rgba(50,25,10,.08);
+      --sh-m:    0 4px 16px rgba(50,25,10,.10);
+      --sh-l:    0 10px 36px rgba(50,25,10,.14);
+      --r:       10px; --rs: 6px;
+    }
+
+    html, body { height: 100%; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+      font-size: 14px; line-height: 1.5;
+      background: var(--bg); color: var(--txt);
+      display: flex; flex-direction: column;
+    }
+
+    /* ── TOPBAR ─────────────────────────────────────────── */
+    .topbar {
+      display: flex; align-items: center; gap: 12px;
+      padding: 0 20px; height: 56px; flex-shrink: 0;
+      background: var(--acc); color: #fff;
+      box-shadow: 0 2px 8px rgba(50,15,5,.25);
+    }
+    .tb-logo  { font-size: 20px; }
+    .tb-title { font-size: 15px; font-weight: 700; }
+    .tb-sub   { font-size: 11px; opacity: .7; }
+    .tb-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+    .tb-clock { font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; }
+    .tb-back  {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 6px 14px; border-radius: var(--rs);
+      background: rgba(255,255,255,.15); color: #fff;
+      font-size: 13px; font-weight: 600; text-decoration: none;
+      transition: background .15s;
+    }
+    .tb-back:hover { background: rgba(255,255,255,.25); }
+    .tb-staff { font-size: 13px; opacity: .85; }
+
+    /* ── LAYOUT ─────────────────────────────────────────── */
+    .layout {
+      flex: 1; display: flex; min-height: 0;
+      overflow: hidden;
+    }
+
+    /* ── LEFT: MENU ─────────────────────────────────────── */
+    .menu-panel {
+      flex: 1; display: flex; flex-direction: column; min-width: 0;
+      border-right: 1px solid var(--brd);
+    }
+
+    /* Category tabs */
+    .cat-tabs {
+      display: flex; gap: 2px; padding: 10px 16px 0;
+      background: var(--surf); border-bottom: 1px solid var(--brd);
+      overflow-x: auto; flex-shrink: 0;
+    }
+    .cat-tab {
+      padding: 8px 16px; border-radius: var(--r) var(--r) 0 0;
+      background: rgba(123,51,20,.08); color: var(--txt2);
+      font-size: 13px; font-weight: 600; cursor: pointer; border: none;
+      white-space: nowrap; transition: background .15s, color .15s;
+    }
+    .cat-tab:hover { background: rgba(123,51,20,.15); }
+    .cat-tab.active { background: var(--acc); color: #fff; }
+
+    /* Subcategory filter */
+    .sub-bar {
+      display: flex; gap: 6px; padding: 8px 16px;
+      background: var(--surf); border-bottom: 1px solid var(--brd2);
+      overflow-x: auto; flex-shrink: 0;
+    }
+    .sub-btn {
+      padding: 4px 12px; border-radius: 999px; border: 1px solid var(--brd);
+      background: var(--card); color: var(--txt2);
+      font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap;
+      transition: background .15s, color .15s, border-color .15s;
+    }
+    .sub-btn:hover  { background: var(--bg); }
+    .sub-btn.active { background: var(--acc); color: #fff; border-color: var(--acc); }
+
+    /* Product grid */
+    .product-grid {
+      flex: 1; overflow-y: auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 12px; padding: 14px 16px; align-content: start;
+    }
+
+    .prod-card {
+      background: var(--card); border: 1.5px solid var(--brd);
+      border-radius: var(--r); box-shadow: var(--sh-s);
+      display: flex; flex-direction: column; cursor: pointer;
+      overflow: hidden; transition: box-shadow .2s, border-color .2s;
+      user-select: none;
+    }
+    .prod-card:hover { box-shadow: var(--sh-m); border-color: var(--acc); }
+    .prod-img {
+      width: 100%; aspect-ratio: 4/3; object-fit: cover;
+      background: var(--acc-l); display: flex; align-items: center;
+      justify-content: center; font-size: 32px; flex-shrink: 0;
+    }
+    .prod-img img { width: 100%; height: 100%; object-fit: cover; }
+    .prod-body { padding: 9px 10px 10px; flex: 1; display: flex; flex-direction: column; gap: 4px; }
+    .prod-name  { font-size: 13px; font-weight: 700; line-height: 1.3; }
+    .prod-desc  { font-size: 11px; color: var(--txt3); line-height: 1.3; flex: 1;
+                  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .prod-foot  { display: flex; align-items: center; justify-content: space-between; margin-top: 6px; }
+    .prod-price { font-size: 15px; font-weight: 800; color: var(--acc); }
+    .prod-add   {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: var(--acc); color: #fff; border: none;
+      font-size: 18px; line-height: 1; cursor: pointer;
+      display: grid; place-items: center; transition: background .15s;
+    }
+    .prod-add:hover { background: var(--acc-h); }
+
+    /* ── RIGHT: CART ─────────────────────────────────────── */
+    .cart-panel {
+      width: 340px; flex-shrink: 0;
+      display: flex; flex-direction: column;
+      background: var(--surf);
+    }
+    .cart-header {
+      padding: 13px 16px; border-bottom: 1px solid var(--brd);
+      font-size: 15px; font-weight: 700; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .cart-clear {
+      font-size: 12px; color: var(--txt3); background: none; border: none;
+      cursor: pointer; padding: 2px 6px; border-radius: 4px;
+    }
+    .cart-clear:hover { background: var(--red-bg); color: var(--red); }
+
+    .cart-items { flex: 1; overflow-y: auto; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; }
+
+    .cart-empty {
+      flex: 1; display: flex; flex-direction: column; align-items: center;
+      justify-content: center; gap: 8px; color: var(--txt3); font-size: 13px; text-align: center;
+    }
+    .cart-empty-ico { font-size: 36px; opacity: .4; }
+
+    .ci {
+      background: var(--card); border: 1px solid var(--brd);
+      border-radius: var(--rs); padding: 9px 10px;
+      display: flex; flex-direction: column; gap: 4px;
+    }
+    .ci-top  { display: flex; align-items: flex-start; gap: 8px; }
+    .ci-name { font-size: 13px; font-weight: 700; flex: 1; }
+    .ci-remove { background: none; border: none; cursor: pointer; color: var(--txt3); font-size: 16px; line-height: 1; padding: 0 2px; }
+    .ci-remove:hover { color: var(--red); }
+    .ci-opts { font-size: 11px; color: var(--txt3); }
+    .ci-bottom { display: flex; align-items: center; justify-content: space-between; }
+    .ci-qty   { display: flex; align-items: center; gap: 6px; }
+    .ci-qbtn  {
+      width: 26px; height: 26px; border-radius: 50%;
+      border: 1px solid var(--brd); background: var(--bg);
+      cursor: pointer; font-size: 15px; display: grid; place-items: center;
+      transition: background .15s;
+    }
+    .ci-qbtn:hover { background: var(--brd); }
+    .ci-qnum  { font-size: 14px; font-weight: 700; min-width: 20px; text-align: center; }
+    .ci-price { font-size: 14px; font-weight: 800; color: var(--acc); }
+
+    /* Cart footer */
+    .cart-footer { border-top: 1px solid var(--brd); padding: 12px 16px; flex-shrink: 0; display: flex; flex-direction: column; gap: 10px; }
+
+    .cart-total-row { display: flex; justify-content: space-between; align-items: center; }
+    .cart-total-lbl { font-size: 14px; color: var(--txt2); }
+    .cart-total-val { font-size: 22px; font-weight: 800; color: var(--acc); }
+
+    /* Cash calc */
+    .cash-row { display: flex; gap: 6px; align-items: center; }
+    .cash-lbl { font-size: 12px; color: var(--txt3); white-space: nowrap; }
+    .cash-inp {
+      flex: 1; height: 34px; border: 1px solid var(--brd); border-radius: var(--rs);
+      padding: 0 8px; background: var(--card); color: var(--txt);
+    }
+    .cash-inp:focus { outline: 2px solid var(--acc); border-color: var(--acc); }
+    .cash-change { font-size: 13px; font-weight: 700; min-width: 60px; text-align: right; }
+    .cash-change.ok  { color: var(--grn); }
+    .cash-change.err { color: var(--red); }
+
+    /* Dispatch toggle */
+    .dispatch-row { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--txt2); }
+    .toggle {
+      position: relative; width: 38px; height: 22px; flex-shrink: 0;
+    }
+    .toggle input { opacity: 0; width: 0; height: 0; position: absolute; }
+    .toggle-track {
+      position: absolute; inset: 0; background: var(--brd);
+      border-radius: 999px; cursor: pointer; transition: background .2s;
+    }
+    .toggle-track::after {
+      content: ''; position: absolute; width: 16px; height: 16px;
+      border-radius: 50%; background: #fff; top: 3px; left: 3px;
+      transition: transform .2s;
+    }
+    .toggle input:checked + .toggle-track { background: var(--grn); }
+    .toggle input:checked + .toggle-track::after { transform: translateX(16px); }
+
+    /* Checkout button */
+    .btn-checkout {
+      width: 100%; height: 46px; border: none; border-radius: var(--rs);
+      background: var(--acc); color: #fff;
+      font-size: 16px; font-weight: 700; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      transition: background .15s;
+    }
+    .btn-checkout:hover:not(:disabled) { background: var(--acc-h); }
+    .btn-checkout:disabled { opacity: .5; cursor: not-allowed; }
+    .spin { display: none; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,.35); border-top-color: #fff; border-radius: 50%; animation: rot .55s linear infinite; }
+    @keyframes rot { to { transform: rotate(360deg); } }
+    .btn-checkout.loading .spin { display: block; }
+    .btn-checkout.loading .btn-tx { display: none; }
+
+    /* ── OPTIONS MODAL ──────────────────────────────────── */
+    .modal-bg {
+      display: none; position: fixed; inset: 0;
+      background: rgba(28,17,11,.45); z-index: 50;
+      align-items: center; justify-content: center;
+    }
+    .modal-bg.show { display: flex; }
+    .modal {
+      background: var(--card); border-radius: var(--r);
+      box-shadow: var(--sh-l); width: min(420px, calc(100vw - 32px));
+      max-height: 80vh; display: flex; flex-direction: column;
+      animation: mIn .2s ease;
+    }
+    @keyframes mIn { from{opacity:0;transform:scale(.93)} to{opacity:1;transform:scale(1)} }
+    .modal-head {
+      padding: 14px 16px; border-bottom: 1px solid var(--brd2);
+      display: flex; align-items: flex-start; gap: 10px; flex-shrink: 0;
+    }
+    .modal-title { font-size: 16px; font-weight: 700; flex: 1; }
+    .modal-price { font-size: 18px; font-weight: 800; color: var(--acc); white-space: nowrap; }
+    .modal-close { background: none; border: none; cursor: pointer; font-size: 20px; color: var(--txt3); padding: 0 2px; line-height: 1; }
+    .modal-close:hover { color: var(--txt); }
+    .modal-body { flex: 1; overflow-y: auto; padding: 14px 16px; display: flex; flex-direction: column; gap: 14px; }
+    .opt-group { display: flex; flex-direction: column; gap: 6px; }
+    .opt-label { font-size: 12px; font-weight: 700; color: var(--txt3); text-transform: uppercase; letter-spacing: .4px; }
+    .opt-values { display: flex; flex-wrap: wrap; gap: 6px; }
+    .opt-val {
+      padding: 6px 14px; border-radius: 999px; border: 1.5px solid var(--brd);
+      background: var(--card); color: var(--txt2);
+      font-size: 13px; font-weight: 600; cursor: pointer;
+      transition: background .15s, color .15s, border-color .15s;
+    }
+    .opt-val:hover { border-color: var(--acc); color: var(--acc); }
+    .opt-val.selected { background: var(--acc); color: #fff; border-color: var(--acc); }
+    .opt-cost { font-size: 10px; opacity: .75; }
+    .comment-inp {
+      width: 100%; height: 60px; border: 1px solid var(--brd); border-radius: var(--rs);
+      padding: 7px 9px; resize: none; background: var(--card); color: var(--txt);
+    }
+    .comment-inp:focus { outline: 2px solid var(--acc); border-color: var(--acc); }
+    .modal-foot {
+      padding: 12px 16px; border-top: 1px solid var(--brd2);
+      display: flex; justify-content: flex-end; gap: 8px; flex-shrink: 0;
+    }
+    .btn-ghost {
+      padding: 0 16px; height: 38px; border-radius: var(--rs);
+      border: 1px solid var(--brd); background: var(--card); color: var(--txt2);
+      font-size: 13px; font-weight: 600; cursor: pointer;
+    }
+    .btn-ghost:hover { background: var(--bg); }
+    .btn-primary {
+      padding: 0 20px; height: 38px; border-radius: var(--rs);
+      border: none; background: var(--acc); color: #fff;
+      font-size: 13px; font-weight: 700; cursor: pointer;
+    }
+    .btn-primary:hover { background: var(--acc-h); }
+
+    /* ── SUCCESS OVERLAY ────────────────────────────────── */
+    .success-overlay {
+      display: none; position: fixed; inset: 0; z-index: 60;
+      background: rgba(28,17,11,.5);
+      align-items: center; justify-content: center;
+    }
+    .success-overlay.show { display: flex; }
+    .success-card {
+      background: var(--card); border-radius: var(--r);
+      padding: 36px 40px; text-align: center;
+      box-shadow: var(--sh-l); animation: mIn .25s ease;
+      display: flex; flex-direction: column; align-items: center; gap: 14px;
+    }
+    .success-ico  { font-size: 56px; }
+    .success-title { font-size: 22px; font-weight: 800; }
+    .success-sub  { font-size: 14px; color: var(--txt3); }
+    .success-total { font-size: 28px; font-weight: 800; color: var(--acc); }
+    .success-id   { font-size: 13px; color: var(--txt3); }
+    .btn-success-ok {
+      margin-top: 8px; padding: 0 36px; height: 44px;
+      border-radius: var(--rs); border: none;
+      background: var(--acc); color: #fff;
+      font-size: 15px; font-weight: 700; cursor: pointer;
+    }
+    .btn-success-ok:hover { background: var(--acc-h); }
+
+    /* ── TOAST ──────────────────────────────────────────── */
+    .toast-wrap { position: fixed; bottom: 18px; right: 18px; z-index: 100; display: flex; flex-direction: column; gap: 7px; }
+    .toast { display: flex; align-items: flex-start; gap: 9px; padding: 11px 14px; border-radius: var(--r); box-shadow: var(--sh-l); animation: tIn .2s ease; font-size: 13px; }
+    @keyframes tIn { from{opacity:0;transform:translateX(16px)} to{opacity:1;transform:translateX(0)} }
+    .toast.ok   { background: #F0FAF5; border: 1px solid #86EFAC; color: var(--grn); }
+    .toast.err  { background: #FFF0F0; border: 1px solid #FCA5A5; color: var(--red); }
+    .toast.warn { background: #FFFBEB; border: 1px solid #FCD34D; color: var(--amb); }
+
+    /* ── LOADER ─────────────────────────────────────────── */
+    .menu-loader { display: flex; align-items: center; justify-content: center; gap: 10px; flex: 1; color: var(--txt3); }
+    .menu-loader-spin { width: 22px; height: 22px; border: 2px solid var(--brd); border-top-color: var(--acc); border-radius: 50%; animation: rot .7s linear infinite; }
+
+    @media (max-width: 700px) {
+      .layout { flex-direction: column; }
+      .cart-panel { width: 100%; height: 40vh; flex-shrink: 0; }
+    }
+  </style>
+</head>
+<body>
+{% csrf_token %}
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <span class="tb-logo">🧾</span>
+  <div>
+    <div class="tb-title">Касса — {{ cafe.name }}</div>
+    <div class="tb-sub">Касса для обычных клиентов</div>
+  </div>
+  <div class="tb-right">
+    <span class="tb-staff">{{ staff_name }}</span>
+    <span class="tb-clock" id="clock">--:--</span>
+    <a class="tb-back" href="/crm/orders/">← CRM</a>
+  </div>
+</header>
+
+<!-- MAIN LAYOUT -->
+<div class="layout">
+
+  <!-- LEFT: MENU -->
+  <div class="menu-panel">
+    <div class="cat-tabs" id="cat-tabs"></div>
+    <div class="sub-bar" id="sub-bar"></div>
+    <div class="product-grid" id="product-grid">
+      <div class="menu-loader"><div class="menu-loader-spin"></div>Загрузка меню…</div>
+    </div>
+  </div>
+
+  <!-- RIGHT: CART -->
+  <div class="cart-panel">
+    <div class="cart-header">
+      <span>🛒 Корзина</span>
+      <button class="cart-clear" id="cart-clear">Очистить</button>
+    </div>
+    <div class="cart-items" id="cart-items">
+      <div class="cart-empty">
+        <div class="cart-empty-ico">☕</div>
+        Корзина пуста.<br>Добавьте товары из меню.
+      </div>
+    </div>
+    <div class="cart-footer">
+      <div class="cart-total-row">
+        <span class="cart-total-lbl">Итого:</span>
+        <span class="cart-total-val" id="cart-total">0 сом</span>
+      </div>
+      <div class="cash-row">
+        <span class="cash-lbl">Наличные:</span>
+        <input class="cash-inp" id="cash-input" type="number" min="0" placeholder="0">
+        <span class="cash-change" id="cash-change">—</span>
+      </div>
+      <div class="dispatch-row">
+        <label class="toggle">
+          <input type="checkbox" id="immediate-toggle">
+          <span class="toggle-track"></span>
+        </label>
+        <span>Выдать сразу (без очереди)</span>
+      </div>
+      <button class="btn-checkout" id="btn-checkout" disabled>
+        <span class="spin"></span>
+        <span class="btn-tx">Оформить заказ</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- OPTIONS MODAL -->
+<div class="modal-bg" id="modal-bg">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title" id="modal-prod-name">—</div>
+      </div>
+      <span class="modal-price" id="modal-prod-price">—</span>
+      <button class="modal-close" id="modal-close">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-foot">
+      <button class="btn-ghost" id="modal-cancel">Отмена</button>
+      <button class="btn-primary" id="modal-add">Добавить в корзину</button>
+    </div>
+  </div>
+</div>
+
+<!-- SUCCESS OVERLAY -->
+<div class="success-overlay" id="success-overlay">
+  <div class="success-card">
+    <div class="success-ico">✅</div>
+    <div class="success-title">Заказ создан!</div>
+    <div class="success-total" id="success-total">—</div>
+    <div class="success-id" id="success-id"></div>
+    <div class="success-sub" id="success-sub"></div>
+    <button class="btn-success-ok" id="success-ok">Новый заказ</button>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toasts"></div>
+
+<script>
+(() => {
+  'use strict';
+
+  const csrf = document.querySelector('[name=csrfmiddlewaretoken]').value;
+  const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+  // ── Clock ──────────────────────────────────────────────
+  function tick() {
+    document.getElementById('clock').textContent =
+      new Date().toLocaleTimeString('ru-RU', { hour:'2-digit', minute:'2-digit' });
+  }
+  tick(); setInterval(tick, 10000);
+
+  // ── Toasts ─────────────────────────────────────────────
+  function toast(msg, type='ok') {
+    const ico = { ok:'✅', err:'❌', warn:'⚠️' }[type];
+    const el = document.createElement('div');
+    el.className = `toast ${type}`;
+    el.innerHTML = `<span>${ico}</span><span>${esc(msg)}</span>`;
+    document.getElementById('toasts').append(el);
+    setTimeout(() => el.remove(), 4000);
+  }
+
+  // ── State ──────────────────────────────────────────────
+  const S = {
+    categories: [],
+    activeCat: null,
+    activeSub: null,
+    cart: [],      // [{product, quantity, options:[{type,value,additional_cost}], comment, unitPrice}]
+    modalProduct: null,
+    modalSelections: {},  // optionTypeId -> {id,value,additional_cost}
+    modalComment: '',
+  };
+
+  // ── Load menu ──────────────────────────────────────────
+  async function loadMenu() {
+    try {
+      const res = await fetch('/crm/api/pos/menu/', {
+        credentials: 'same-origin',
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) { toast(data.detail || 'Ошибка загрузки меню', 'err'); return; }
+      S.categories = data.categories;
+      if (S.categories.length) {
+        S.activeCat = S.categories[0].id;
+        S.activeSub = S.categories[0].subcategories[0]?.id ?? null;
+      }
+      renderCatTabs();
+      renderSubBar();
+      renderProducts();
+    } catch(e) {
+      toast('Не удалось загрузить меню', 'err');
+    }
+  }
+
+  // ── Category tabs ──────────────────────────────────────
+  function renderCatTabs() {
+    document.getElementById('cat-tabs').innerHTML = S.categories.map(c =>
+      `<button class="cat-tab ${c.id === S.activeCat ? 'active' : ''}" data-cat="${c.id}">${esc(c.title)}</button>`
+    ).join('');
+  }
+
+  document.getElementById('cat-tabs').addEventListener('click', e => {
+    const btn = e.target.closest('[data-cat]');
+    if (!btn) return;
+    const catId = +btn.dataset.cat;
+    S.activeCat = catId;
+    const cat = S.categories.find(c => c.id === catId);
+    S.activeSub = cat?.subcategories[0]?.id ?? null;
+    renderCatTabs();
+    renderSubBar();
+    renderProducts();
+  });
+
+  // ── Subcategory bar ────────────────────────────────────
+  function renderSubBar() {
+    const cat = S.categories.find(c => c.id === S.activeCat);
+    const subs = cat?.subcategories ?? [];
+    document.getElementById('sub-bar').innerHTML = subs.map(s =>
+      `<button class="sub-btn ${s.id === S.activeSub ? 'active' : ''}" data-sub="${s.id}">${esc(s.title)}</button>`
+    ).join('');
+  }
+
+  document.getElementById('sub-bar').addEventListener('click', e => {
+    const btn = e.target.closest('[data-sub]');
+    if (!btn) return;
+    S.activeSub = +btn.dataset.sub;
+    renderSubBar();
+    renderProducts();
+  });
+
+  // ── Products ───────────────────────────────────────────
+  function getActiveProducts() {
+    const cat = S.categories.find(c => c.id === S.activeCat);
+    if (!cat) return [];
+    if (S.activeSub === null) return cat.subcategories.flatMap(s => s.products);
+    const sub = cat.subcategories.find(s => s.id === S.activeSub);
+    return sub?.products ?? [];
+  }
+
+  function renderProducts() {
+    const grid = document.getElementById('product-grid');
+    const products = getActiveProducts();
+    if (!products.length) {
+      grid.innerHTML = '<div class="menu-loader" style="color:var(--txt3)">Нет товаров</div>';
+      return;
+    }
+    grid.innerHTML = products.map(p => `
+      <div class="prod-card" data-pid="${p.id}">
+        <div class="prod-img">
+          ${p.image
+            ? `<img src="${esc(p.image)}" alt="${esc(p.title)}">`
+            : '☕'}
+        </div>
+        <div class="prod-body">
+          <div class="prod-name">${esc(p.title)}</div>
+          ${p.description ? `<div class="prod-desc">${esc(p.description)}</div>` : ''}
+          <div class="prod-foot">
+            <span class="prod-price">${p.price} с</span>
+            <button class="prod-add" data-pid="${p.id}" title="Добавить">+</button>
+          </div>
+        </div>
+      </div>`).join('');
+  }
+
+  document.getElementById('product-grid').addEventListener('click', e => {
+    const btn = e.target.closest('[data-pid]');
+    if (!btn) return;
+    const pid = +btn.dataset.pid;
+    const product = findProduct(pid);
+    if (!product) return;
+    if (product.has_options && product.option_types.length) {
+      openModal(product);
+    } else {
+      addToCart(product, [], '');
+    }
+  });
+
+  function findProduct(pid) {
+    for (const cat of S.categories)
+      for (const sub of cat.subcategories)
+        for (const p of sub.products)
+          if (p.id === pid) return p;
+    return null;
+  }
+
+  // ── Cart ───────────────────────────────────────────────
+  function calcUnitPrice(product, options) {
+    return product.price + options.reduce((s, o) => s + (o.additional_cost || 0), 0);
+  }
+
+  function addToCart(product, options, comment) {
+    const unitPrice = calcUnitPrice(product, options);
+    // Try to merge with existing identical item
+    const optsKey = JSON.stringify(options.map(o => o.id).sort());
+    const existing = S.cart.find(ci =>
+      ci.product.id === product.id &&
+      JSON.stringify(ci.options.map(o => o.id).sort()) === optsKey &&
+      ci.comment === comment
+    );
+    if (existing) {
+      existing.quantity++;
+    } else {
+      S.cart.push({ product, options, comment, quantity: 1, unitPrice });
+    }
+    renderCart();
+    toast(`${product.title} добавлен`, 'ok');
+  }
+
+  function renderCart() {
+    const el = document.getElementById('cart-items');
+    if (!S.cart.length) {
+      el.innerHTML = '<div class="cart-empty"><div class="cart-empty-ico">☕</div>Корзина пуста.<br>Добавьте товары из меню.</div>';
+      document.getElementById('btn-checkout').disabled = true;
+      document.getElementById('cart-total').textContent = '0 сом';
+      updateChange();
+      return;
+    }
+
+    el.innerHTML = S.cart.map((ci, idx) => {
+      const price = ci.unitPrice * ci.quantity;
+      const optsStr = ci.options.map(o => `${o.type}: ${o.value}`).join(' · ');
+      return `<div class="ci">
+        <div class="ci-top">
+          <div class="ci-name">${esc(ci.product.title)}</div>
+          <button class="ci-remove" data-rm="${idx}">✕</button>
+        </div>
+        ${optsStr ? `<div class="ci-opts">${esc(optsStr)}</div>` : ''}
+        ${ci.comment ? `<div class="ci-opts" style="color:var(--acc)">💬 ${esc(ci.comment)}</div>` : ''}
+        <div class="ci-bottom">
+          <div class="ci-qty">
+            <button class="ci-qbtn" data-dec="${idx}">−</button>
+            <span class="ci-qnum">${ci.quantity}</span>
+            <button class="ci-qbtn" data-inc="${idx}">+</button>
+          </div>
+          <span class="ci-price">${price} с</span>
+        </div>
+      </div>`;
+    }).join('');
+
+    const total = S.cart.reduce((s, ci) => s + ci.unitPrice * ci.quantity, 0);
+    document.getElementById('cart-total').textContent = total.toLocaleString('ru-RU') + ' сом';
+    document.getElementById('btn-checkout').disabled = false;
+    updateChange();
+  }
+
+  document.getElementById('cart-items').addEventListener('click', e => {
+    const rm  = e.target.closest('[data-rm]');
+    const dec = e.target.closest('[data-dec]');
+    const inc = e.target.closest('[data-inc]');
+    if (rm)  { S.cart.splice(+rm.dataset.rm, 1); renderCart(); }
+    if (dec) { const ci = S.cart[+dec.dataset.dec]; if (ci) { ci.quantity--; if (ci.quantity < 1) S.cart.splice(+dec.dataset.dec, 1); } renderCart(); }
+    if (inc) { const ci = S.cart[+inc.dataset.inc]; if (ci) ci.quantity++; renderCart(); }
+  });
+
+  document.getElementById('cart-clear').addEventListener('click', () => {
+    S.cart = []; renderCart();
+  });
+
+  // ── Cash change calc ───────────────────────────────────
+  function updateChange() {
+    const total = S.cart.reduce((s, ci) => s + ci.unitPrice * ci.quantity, 0);
+    const cash  = parseFloat(document.getElementById('cash-input').value) || 0;
+    const el    = document.getElementById('cash-change');
+    if (!total || !cash) { el.textContent = '—'; el.className = 'cash-change'; return; }
+    const change = cash - total;
+    el.textContent = (change >= 0 ? 'Сдача: ' : 'Не хватает: ') + Math.abs(change).toLocaleString('ru-RU') + ' с';
+    el.className   = 'cash-change ' + (change >= 0 ? 'ok' : 'err');
+  }
+  document.getElementById('cash-input').addEventListener('input', updateChange);
+
+  // ── Options modal ──────────────────────────────────────
+  function openModal(product) {
+    S.modalProduct    = product;
+    S.modalSelections = {};
+    S.modalComment    = '';
+
+    document.getElementById('modal-prod-name').textContent  = product.title;
+    document.getElementById('modal-prod-price').textContent = product.price + ' с';
+
+    const body = document.getElementById('modal-body');
+    body.innerHTML = product.option_types.map(ot => `
+      <div class="opt-group" data-ot="${ot.id}">
+        <div class="opt-label">${esc(ot.title)}</div>
+        <div class="opt-values">
+          ${ot.values.map(v => `
+            <button class="opt-val" data-ot="${ot.id}" data-vid="${v.id}" data-value="${esc(v.value)}" data-cost="${v.additional_cost}">
+              ${esc(v.value)}
+              ${v.additional_cost ? `<span class="opt-cost">+${v.additional_cost}с</span>` : ''}
+            </button>`).join('')}
+        </div>
+      </div>`).join('') + `
+      <div class="opt-group">
+        <div class="opt-label">Комментарий</div>
+        <textarea class="comment-inp" id="modal-comment" placeholder="Пожелания к заказу…"></textarea>
+      </div>`;
+
+    // Auto-select first value of each option type
+    product.option_types.forEach(ot => {
+      if (ot.values.length) {
+        const v = ot.values[0];
+        S.modalSelections[ot.id] = { id: v.id, type: ot.title, value: v.value, additional_cost: v.additional_cost };
+        body.querySelector(`[data-ot="${ot.id}"][data-vid="${v.id}"]`)?.classList.add('selected');
+      }
+    });
+    updateModalPrice();
+
+    document.getElementById('modal-bg').classList.add('show');
+  }
+
+  document.getElementById('modal-body').addEventListener('click', e => {
+    const btn = e.target.closest('.opt-val');
+    if (!btn) return;
+    const otId  = +btn.dataset.ot;
+    const vid   = +btn.dataset.vid;
+    const value = btn.dataset.value;
+    const cost  = +btn.dataset.cost;
+    const ot    = S.modalProduct.option_types.find(x => x.id === otId);
+
+    S.modalSelections[otId] = { id: vid, type: ot.title, value, additional_cost: cost };
+
+    document.querySelectorAll(`[data-ot="${otId}"].opt-val`).forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    updateModalPrice();
+  });
+
+  function updateModalPrice() {
+    if (!S.modalProduct) return;
+    const extra = Object.values(S.modalSelections).reduce((s, o) => s + (o.additional_cost || 0), 0);
+    document.getElementById('modal-prod-price').textContent = (S.modalProduct.price + extra) + ' с';
+  }
+
+  function closeModal() {
+    document.getElementById('modal-bg').classList.remove('show');
+    S.modalProduct = null;
+  }
+
+  document.getElementById('modal-close').addEventListener('click', closeModal);
+  document.getElementById('modal-cancel').addEventListener('click', closeModal);
+  document.getElementById('modal-bg').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
+
+  document.getElementById('modal-add').addEventListener('click', () => {
+    if (!S.modalProduct) return;
+    const comment = document.getElementById('modal-comment')?.value.trim() || '';
+    const options = Object.values(S.modalSelections);
+    addToCart(S.modalProduct, options, comment);
+    closeModal();
+  });
+
+  // ── Checkout ───────────────────────────────────────────
+  document.getElementById('btn-checkout').addEventListener('click', checkout);
+
+  async function checkout() {
+    if (!S.cart.length) return;
+    const btn = document.getElementById('btn-checkout');
+    btn.classList.add('loading'); btn.disabled = true;
+
+    const complete_immediately = document.getElementById('immediate-toggle').checked;
+    const payload = {
+      complete_immediately,
+      items: S.cart.map(ci => ({
+        product_id: ci.product.id,
+        quantity: ci.quantity,
+        comment: ci.comment,
+        options: ci.options.map(o => ({
+          type: o.type,
+          value: o.value,
+          additional_cost: o.additional_cost,
+        })),
+      })),
+    };
+
+    try {
+      const res  = await fetch('/crm/api/pos/order/', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrf,
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        toast(data.detail || 'Ошибка создания заказа', 'err');
+        return;
+      }
+
+      // Show success overlay
+      const total = S.cart.reduce((s, ci) => s + ci.unitPrice * ci.quantity, 0);
+      document.getElementById('success-total').textContent  = total.toLocaleString('ru-RU') + ' сом';
+      document.getElementById('success-id').textContent     = `Заказ #${data.order_id}`;
+      document.getElementById('success-sub').textContent    = complete_immediately
+        ? 'Заказ выдан клиенту'
+        : 'Заказ отправлен на кухню';
+      document.getElementById('success-overlay').classList.add('show');
+
+      S.cart = [];
+      renderCart();
+      document.getElementById('cash-input').value = '';
+      updateChange();
+    } catch(e) {
+      toast('Нет связи с сервером', 'err');
+    } finally {
+      btn.classList.remove('loading'); btn.disabled = !S.cart.length;
+    }
+  }
+
+  document.getElementById('success-ok').addEventListener('click', () => {
+    document.getElementById('success-overlay').classList.remove('show');
+  });
+
+  // ── Init ───────────────────────────────────────────────
+  loadMenu();
+})();
+</script>
+</body>
+</html>
