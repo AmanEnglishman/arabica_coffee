@@ -499,6 +499,7 @@
       document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id === `panel-${name}`));
       if (name === 'history' && S.history === null) loadHistory();
       if (name === 'couriers' && S.cStatus === null) loadCouriers();
+      if (name === 'reports') loadReports();
     }
 
     // ── Filter ─────────────────────────────────────────────
@@ -1006,16 +1007,6 @@
     }
 
     document.getElementById('rep-refresh').addEventListener('click', loadReports);
-
-    // patch switchTab to load reports lazily
-    const _origSwitch = switchTab;
-    function switchTab(name) {
-      _origSwitch(name);
-      if (name === 'reports') loadReports();
-    }
-    document.querySelectorAll('.tab').forEach(b =>
-      b.onclick = () => switchTab(b.dataset.tab)
-    );
 
     // ══ WEBSOCKET ════════════════════════════════════════════
 
