@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.db import models
 from django.contrib.auth import get_user_model
 
@@ -67,6 +69,24 @@ class OrderItem(models.Model):
     quantity = models.IntegerField(default=1)
     product_options = models.JSONField(default=dict, blank=True)  # Информация о выбранных опциях
     final_price = models.DecimalField(max_digits=10, decimal_places=2)  # Цена за всю позицию (кол-во * цена)
+
+    def save(self, *args, **kwargs):
+        if self.final_price is None:
+            from apps.menu.models.option import OptionValue
+            base_price = Decimal(str(self.product.price))
+            option_ids = [
+                opt["id"]
+                for opt in (self.product_options or {}).get("options", [])
+                if "id" in opt
+            ]
+            extra_cost = Decimal("0")
+            if option_ids:
+                total = OptionValue.objects.filter(id__in=option_ids).aggregate(
+                    total=models.Sum("additional_cost")
+                )["total"]
+                extra_cost = Decimal(str(total or 0))
+            self.final_price = (base_price + extra_cost) * self.quantity
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.quantity} x {self.product.title} ({self.order.id})"
