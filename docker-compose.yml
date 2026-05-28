@@ -128,18 +128,32 @@ services:
     command: celery -A arabica beat --loglevel=info
 
   nginx:
-    image: nginx
+    image: nginx:alpine
     container_name: arabica-nginx
     ports:
       - "80:80"
+      - "443:443"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
       - static_volume:/static
       - media_volume:/media
+      - certbot_www:/var/www/certbot
+      - certbot_certs:/etc/letsencrypt
     depends_on:
       - django
+    restart: always
+
+  certbot:
+    image: certbot/certbot
+    container_name: arabica-certbot
+    volumes:
+      - certbot_www:/var/www/certbot
+      - certbot_certs:/etc/letsencrypt
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew --quiet; sleep 12h & wait $${!}; done;'"
 
 volumes:
   static_volume:
   media_volume:
   postgres_data:
+  certbot_www:
+  certbot_certs:
