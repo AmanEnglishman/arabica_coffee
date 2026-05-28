@@ -114,14 +114,11 @@ class CreateOrderView(APIView):
                 total_price  = max(Decimal("0.00"), total_price - Decimal(str(bonus_spent)))
                 locked_user.loyalty_points -= bonus_spent
 
+            earned_int = int(bonus_earned.quantize(Decimal("1"), rounding=ROUND_DOWN))
             order.total_price = total_price
             order.bonus_spent = bonus_spent
-            order.save(update_fields=["total_price", "bonus_spent"])
-
-            # Accrue earned bonus points (only on amount actually paid)
-            earned_int = int(bonus_earned.quantize(Decimal("1"), rounding=ROUND_DOWN))
-            if earned_int > 0:
-                locked_user.loyalty_points += earned_int
+            order.bonus_earned = earned_int
+            order.save(update_fields=["total_price", "bonus_spent", "bonus_earned"])
 
             locked_user.save(update_fields=["loyalty_points"])
 

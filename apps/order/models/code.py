@@ -40,7 +40,9 @@ class Order(models.Model):
     address = models.TextField(blank=True, null=True)  # Только для доставки
     delivery_time = models.TimeField(blank=True, null=True)  # Время доставки
     total_price = models.DecimalField(max_digits=10, decimal_places=2)
-    bonus_spent = models.PositiveIntegerField(default=0)  # Бонусные баллы, потраченные на заказ
+    bonus_spent = models.PositiveIntegerField(default=0)
+    bonus_earned = models.PositiveIntegerField(default=0)
+    bonus_awarded = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     ready_at = models.DateTimeField(blank=True, null=True)
     on_the_way_at = models.DateTimeField(blank=True, null=True)
