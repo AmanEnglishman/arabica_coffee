@@ -688,18 +688,20 @@
 
     // ── Action fetch ───────────────────────────────────────
     async function doAction(btn, oid, act) {
-      const fd = new FormData();
+      let body = null;
       if (act === 'assign-courier') {
         const sel = document.querySelector(`[data-csel="${oid}"]`);
         if (!sel?.value) { toast('Выберите курьера из списка', 'warn'); return; }
+        const fd = new FormData();
         fd.append('courier_id', sel.value);
+        body = fd;
       }
       btn.classList.add('loading'); btn.disabled = true;
       try {
         const res = await fetch(`/crm/orders/${oid}/${act}/`, {
           method: 'POST', credentials: 'same-origin',
           headers: { 'X-CSRFToken': csrf, 'X-Requested-With': 'XMLHttpRequest' },
-          body: fd,
+          body: body,
         });
         // parse response safely
         const text = await res.text();
