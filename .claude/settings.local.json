@@ -3,7 +3,15 @@
     "allow": [
       "Bash(wsl -e find /home/aman/arabica_coffee -maxdepth 2 -not -path \"*/.git/*\" -not -path \"*/__pycache__/*\")",
       "Bash(wsl -d Ubuntu-24.04 find /home/aman/arabica_coffee -maxdepth 2 -not -path \"*/.git/*\" -not -path \"*/__pycache__/*\")",
-      "Bash(wsl -d Ubuntu-24.04 -- bash -c \"find /home/aman/arabica_coffee -maxdepth 2 ! -path '*/.git/*' ! -path '*/__pycache__/*' | sort | head -80\")"
+      "Bash(wsl -d Ubuntu-24.04 -- bash -c \"find /home/aman/arabica_coffee -maxdepth 2 ! -path '*/.git/*' ! -path '*/__pycache__/*' | sort | head -80\")",
+      "Read(//home/aman/arabica_coffee/apps/users/utils/**)",
+      "Read(///wsl.localhost/Ubuntu-24.04/home/aman/arabica_coffee/apps/users/utils/**)",
+      "Read(//home/aman/arabica_coffee/apps/users/api/views/**)",
+      "Read(///wsl.localhost/Ubuntu-24.04/home/aman/arabica_coffee/apps/users/api/views/**)",
+      "Read(//home/aman/arabica_coffee/apps/users/api/serializers/**)",
+      "Read(///wsl.localhost/Ubuntu-24.04/home/aman/arabica_coffee/apps/users/api/serializers/**)",
+      "Read(//home/aman/arabica_coffee/**)",
+      "Read(///wsl.localhost/Ubuntu-24.04/home/aman/arabica_coffee/**)"
     ]
   }
 }
