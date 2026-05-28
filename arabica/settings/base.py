@@ -126,8 +126,8 @@ CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8000",
     "http://77.95.206.95:8001",
     "http://77.95.206.95",
+    "https://arabicacoffee.duckdns.org"
 ]
-
 
 TWILIO_ACCOUNT_SID = config(
     "TWILIO_ACCOUNT_SID", default=os.environ.get("TWILIO_ACCOUNT_SID")
