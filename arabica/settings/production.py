@@ -1,7 +1,7 @@
 from .base import *
 from decouple import Csv, config
 
-DEBUG = config("DEBUG", default=False, cast=bool)
+DEBUG = config("DEBUG", default=True, cast=bool)
 
 SECRET_KEY = config("SECRET_KEY")
 SIMPLE_JWT["SIGNING_KEY"] = SECRET_KEY
