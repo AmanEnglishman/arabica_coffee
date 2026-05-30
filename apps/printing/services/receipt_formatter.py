@@ -3,8 +3,8 @@ from django.utils import timezone
 WIDTH = 42  # 80mm paper @ 12x24 font ≈ 42 chars
 
 
-def _divider():
-    return "-" * WIDTH
+def _line(char="-"):
+    return char * WIDTH
 
 
 def _center(text):
@@ -23,16 +23,25 @@ def _left_right(left, right):
 def format_receipt(order) -> str:
     lines = []
 
-    # Header
-    cafe_name = order.cafe.name if order.cafe else "ARABICA"
-    lines.append(_center(cafe_name))
-    lines.append(_divider())
-    lines.append(f"Заказ #{order.id}")
-    now_str = timezone.localtime(order.created_at).strftime("%d.%m.%Y %H:%M")
-    lines.append(f"Время: {now_str}")
-    lines.append(_divider())
+    # ── Header ────────────────────────────────────────────────
+    cafe = order.cafe
+    cafe_name = cafe.name if cafe else "ARABICA"
 
-    # Items
+    lines.append(_line("═"))
+    lines.append(_center(cafe_name.upper()))
+    if cafe and cafe.address:
+        lines.append(_center(cafe.address))
+    if cafe and cafe.phone:
+        lines.append(_center(cafe.phone))
+    lines.append(_line("═"))
+
+    # Order ID + date on one line
+    created_local = timezone.localtime(order.created_at)
+    date_str = created_local.strftime("%d.%m.%Y  %H:%M")
+    lines.append(_left_right(f"Заказ #{order.id}", date_str))
+    lines.append(_line())
+
+    # ── Items ─────────────────────────────────────────────────
     for item in order.items.select_related("product").all():
         name  = item.product.title
         qty   = item.quantity
@@ -51,16 +60,20 @@ def format_receipt(order) -> str:
         if comment:
             lines.append(f"  Комм: {comment}")
 
-    lines.append(_divider())
+    lines.append(_line())
 
-    # Bonus
+    # ── Totals ────────────────────────────────────────────────
     if order.bonus_spent:
         lines.append(_left_right("Бонусы:", f"-{order.bonus_spent} с"))
 
     lines.append(_left_right("ИТОГО:", f"{order.total_price} с"))
-    lines.append("")
 
-    # Delivery info
+    if order.bonus_earned:
+        lines.append(_left_right("Начислено бонусов:", f"+{order.bonus_earned} б"))
+
+    lines.append(_line())
+
+    # ── Delivery / Customer ───────────────────────────────────
     if order.delivery_type == "delivery":
         lines.append("Тип: Доставка")
         if order.address:
@@ -70,15 +83,16 @@ def format_receipt(order) -> str:
     else:
         lines.append("Тип: Самовывоз")
 
-    # Customer
     if not order.user.phone_number.startswith("+00000"):
         name = " ".join(p for p in [order.user.first_name, order.user.last_name] if p)
         if name:
             lines.append(f"Клиент: {name}")
         lines.append(f"Тел: {order.user.phone_number}")
 
-    lines.append(_divider())
+    # ── Footer ────────────────────────────────────────────────
+    lines.append(_line("═"))
     lines.append(_center("Спасибо за заказ!"))
+    lines.append(_line("═"))
     lines.append("")
 
     return "\n".join(lines)
