@@ -17,11 +17,12 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "arabica.settings")
 
 django_asgi_app = get_asgi_application()
 
-from apps.order.routing import websocket_urlpatterns
+from apps.order.routing import websocket_urlpatterns as order_ws
+from apps.printing.routing import websocket_urlpatterns as printer_ws
 
 application = ProtocolTypeRouter(
     {
         "http": django_asgi_app,
-        "websocket": AuthMiddlewareStack(URLRouter(websocket_urlpatterns)),
+        "websocket": AuthMiddlewareStack(URLRouter(order_ws + printer_ws)),
     }
 )

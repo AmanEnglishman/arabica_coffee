@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     "apps.news.apps.NewsConfig",
     "apps.promotions.apps.PromotionsConfig",
     "apps.bonus.apps.BonusConfig",
+    "apps.printing.apps.PrintingConfig",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -128,6 +129,8 @@ CSRF_TRUSTED_ORIGINS = [
     "http://77.95.206.95",
     "https://arabicacoffee.duckdns.org"
 ]
+
+PRINTER_WS_TOKEN = config("PRINTER_WS_TOKEN", default="")
 
 TWILIO_ACCOUNT_SID = config(
     "TWILIO_ACCOUNT_SID", default=os.environ.get("TWILIO_ACCOUNT_SID")

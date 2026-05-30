@@ -179,6 +179,13 @@
     .ocard-total-price { font-size: 16px; font-weight: 800; color: var(--acc); }
 
     .ocard-actions { padding: 9px 12px 11px; border-top: 1px solid var(--brd2); background: #FDF9F5; display: flex; flex-direction: column; gap: 7px; }
+    .print-row { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+    .print-badge { font-size: 11px; font-weight: 600; display: inline-flex; align-items: center; gap: 3px; }
+    .ps-none       { color: var(--txt3); }
+    .ps-pending    { color: var(--amb); }
+    .ps-processing { color: var(--blu); }
+    .ps-printed    { color: var(--grn); }
+    .ps-failed     { color: var(--red); }
 
     /* ── BUTTONS ────────────────────────────────────────────── */
     .btn {
@@ -560,6 +567,20 @@
       </div>`;
     }
 
+    const PRINT_ICONS = { none: '🖨️', pending: '🟡', processing: '🔵', printed: '🟢', failed: '🔴' };
+    const PRINT_LABELS = { none: 'Нет чека', pending: 'Ожидает', processing: 'Печатается', printed: 'Напечатан', failed: 'Ошибка' };
+
+    function renderPrintStatus(o) {
+      const s = o.print_status || 'none';
+      const ico = PRINT_ICONS[s] || '🖨️';
+      const lbl = PRINT_LABELS[s] || s;
+      const retryBtn = `<button class="btn btn-ghost btn-sm" data-act="reprint" data-oid="${o.id}" title="Повторить печать" style="padding:0 8px;min-height:26px;font-size:11px">↻ Печать</button>`;
+      return `<div class="print-row">
+        <span class="print-badge ps-${s}">${ico} ${esc(lbl)}</span>
+        ${retryBtn}
+      </div>`;
+    }
+
     function renderActions(o) {
       if (o.status === 'accepted') {
         return `<button class="btn btn-primary btn-full" data-act="mark-ready" data-oid="${o.id}">
@@ -644,7 +665,10 @@
             <span class="ocard-total-price">${esc(o.total_price)} сом</span>
           </div>
         </div>
-        <div class="ocard-actions">${renderActions(o)}</div>
+        <div class="ocard-actions">
+          ${renderPrintStatus(o)}
+          ${renderActions(o)}
+        </div>
       </article>`;
     }
 
@@ -688,6 +712,20 @@
 
     // ── Action fetch ───────────────────────────────────────
     async function doAction(btn, oid, act) {
+      if (act === 'reprint') {
+        btn.disabled = true;
+        try {
+          const res = await fetch(`/api/printer/reprint/${oid}/`, {
+            method: 'POST', credentials: 'same-origin',
+            headers: { 'X-CSRFToken': csrf, 'X-Requested-With': 'XMLHttpRequest' },
+          });
+          const data = await res.json().catch(() => ({}));
+          toast(res.ok ? 'Задание отправлено на печать' : (data.detail || 'Ошибка'), res.ok ? 'ok' : 'err');
+        } catch(_) { toast('Нет связи с сервером', 'err'); }
+        finally { btn.disabled = false; }
+        return;
+      }
+
       let body = null;
       if (act === 'assign-courier') {
         const sel = document.querySelector(`[data-csel="${oid}"]`);

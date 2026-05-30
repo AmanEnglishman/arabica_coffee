@@ -88,6 +88,13 @@ def get_active_orders(cafe):
     )
 
 
+def _get_print_status(order):
+    job = order.print_jobs.order_by("-created_at").first()
+    if job is None:
+        return "none", None
+    return job.status, job.id
+
+
 def serialize_order(order):
     courier_name = ""
     if order.courier:
@@ -98,6 +105,7 @@ def serialize_order(order):
     customer_name = " ".join(
         p for p in [order.user.first_name, order.user.last_name] if p
     )
+    print_status, print_job_id = _get_print_status(order)
     return {
         "id": order.id,
         "status": order.status,
@@ -117,6 +125,8 @@ def serialize_order(order):
             "phone_number": order.courier.phone_number if order.courier else "",
             "name": courier_name,
         },
+        "print_status": print_status,
+        "print_job_id": print_job_id,
         "items": [
             {
                 "id": item.id,

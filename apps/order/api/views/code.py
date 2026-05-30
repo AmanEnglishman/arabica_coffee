@@ -125,8 +125,14 @@ class CreateOrderView(APIView):
             cart.items.all().delete()
             cache.delete(f"user_cart_{user.id}")
 
-            serializer = OrderSerializer(order)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        try:
+            from apps.printing.utils import create_and_broadcast_print_job
+            create_and_broadcast_print_job(order)
+        except Exception:
+            pass
+
+        serializer = OrderSerializer(order)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 @extend_schema(

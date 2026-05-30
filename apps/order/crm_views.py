@@ -362,6 +362,12 @@ def crm_pos_order_api(request):
 
     broadcast_cafe_orders(membership.cafe.id)
 
+    try:
+        from apps.printing.utils import create_and_broadcast_print_job
+        create_and_broadcast_print_job(order)
+    except Exception:
+        pass
+
     return JsonResponse({"ok": True, "order_id": order.id, "total": total})
 
 
