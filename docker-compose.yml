@@ -49,6 +49,7 @@ services:
       - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID}
       - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN}
       - TWILIO_VERIFY_SERVICE_SID=${TWILIO_VERIFY_SERVICE_SID}
+      - PRINTER_WS_TOKEN=${PRINTER_WS_TOKEN}
     volumes:
       - static_volume:/static
       - media_volume:/media
