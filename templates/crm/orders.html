@@ -314,13 +314,59 @@
 
     /* ── RESPONSIVE ─────────────────────────────────────────── */
     @media (max-width: 1050px) { .board { grid-template-columns: repeat(2, 1fr); } }
-    @media (max-width: 700px)  {
-      .board { grid-template-columns: 1fr; padding: 10px; }
-      .topbar, .filter-bar { padding: 0 12px; }
-      .tb-addr, .tb-sep { display: none; }
-      .hcard-row { grid-template-columns: 46px 1fr 80px 18px; }
+
+    /* Tablet */
+    @media (max-width: 900px) {
+      .btn { min-height: 40px; }
+      .statsbar { flex-wrap: wrap; }
+      .stat { flex: 1 0 calc(50% - 1px); }
+      .stat:nth-child(odd) { border-right: 1px solid var(--brd2); }
+      .stat:nth-child(n+3) { border-top: 1px solid var(--brd2); }
+    }
+
+    /* Mobile */
+    @media (max-width: 700px) {
+      .board { grid-template-columns: 1fr; padding: 10px; gap: 10px; }
+      .topbar { padding: 0 12px; height: 52px; }
+      .tb-addr, .tb-sep, .tb-cafe { display: none; }
+      .tb-right { gap: 6px; }
+      .filter-bar { padding: 6px 10px; gap: 5px; }
+      .fbtn { padding: 4px 10px; font-size: 11px; }
+      .tabbar { padding: 8px 10px 0; }
+      .tab { padding: 8px 11px; font-size: 12px; gap: 4px; }
+
+      /* Stats: 2×2 grid */
+      .statsbar { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1px solid var(--brd); }
+      .stat { border-right: none !important; border-bottom: none; padding: 8px 10px; }
+      .stat:nth-child(odd) { border-right: 1px solid var(--brd2) !important; }
+      .stat:nth-child(1),.stat:nth-child(2) { border-bottom: 1px solid var(--brd2) !important; }
+      .stat-val { font-size: 16px; }
+      .stat-ico { width: 26px; height: 26px; font-size: 13px; }
+      .stat-label { font-size: 10px; }
+
+      /* Touch-friendly buttons */
+      .btn { min-height: 44px; font-size: 14px; }
+      .btn-sm { min-height: 36px; font-size: 12px; }
+      .ocard-actions { padding: 10px 12px 14px; gap: 8px; }
+      .c-sel { min-height: 42px; }
+      .c-row { gap: 8px; }
+
+      /* History */
+      .hist-bar { padding: 10px 12px; gap: 8px; }
+      .srch { width: 100%; }
+      .hcard-row { grid-template-columns: 46px 1fr 80px 18px; gap: 8px; padding: 10px 12px; }
       .hcard-row .pill { display: none; }
-      .cour-grid { padding: 12px; }
+      .hcard-price { font-size: 13px; }
+
+      /* Couriers */
+      .cour-grid { padding: 10px; }
+      .cour-bar { padding: 10px 12px; }
+    }
+
+    @media (max-width: 400px) {
+      .tab { padding: 7px 8px; font-size: 11px; }
+      .tb-badge { min-width: 16px; height: 16px; font-size: 10px; }
+      .ws-badge { display: none; }
     }
   </style>
 </head>
