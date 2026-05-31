@@ -14,7 +14,14 @@ from pathlib import Path
 import requests
 import websockets
 
-BASE_DIR = Path(__file__).parent
+import sys
+
+# When bundled by PyInstaller, use exe directory; otherwise use script directory
+if getattr(sys, "frozen", False):
+    BASE_DIR = Path(sys.executable).parent
+else:
+    BASE_DIR = Path(__file__).parent
+
 CONFIG_PATH = BASE_DIR / "config.json"
 DB_PATH = BASE_DIR / "printed_jobs.db"
 LOG_PATH = BASE_DIR / "logs" / "printer.log"

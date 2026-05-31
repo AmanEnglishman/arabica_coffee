@@ -1,0 +1,22 @@
+[Unit]
+Description=Arabica Print Client
+Documentation=https://arabicacoffee.duckdns.org
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=arabica-printer
+WorkingDirectory=/opt/arabica-printer
+ExecStart=/opt/arabica-printer/venv/bin/python /opt/arabica-printer/client.py
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=arabica-printer
+
+# Limits
+LimitNOFILE=4096
+
+[Install]
+WantedBy=multi-user.target
