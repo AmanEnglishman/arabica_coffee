@@ -14,6 +14,12 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 echo "=== Arabica Print Client — Linux Install ==="
 
+have_python_deps() {
+    command -v python3 >/dev/null 2>&1 &&
+    python3 -m venv --help >/dev/null 2>&1 &&
+    python3 -m pip --version >/dev/null 2>&1
+}
+
 # Create system user (no login, no home)
 if ! id "$SERVICE_USER" &>/dev/null; then
     echo "Creating user $SERVICE_USER..."
@@ -21,9 +27,28 @@ if ! id "$SERVICE_USER" &>/dev/null; then
 fi
 
 # Install Python deps
-echo "Installing system packages..."
-apt-get update -qq
-apt-get install -y python3 python3-venv python3-pip --no-install-recommends
+if [ "${SKIP_APT:-0}" = "1" ]; then
+    echo "SKIP_APT=1 set; skipping apt packages."
+    if ! have_python_deps; then
+        echo "ERROR: python3, python3-venv or python3-pip is missing."
+        exit 1
+    fi
+elif have_python_deps; then
+    echo "Python, venv and pip are already installed; skipping apt packages."
+else
+    echo "Installing system packages..."
+    if ! apt-get update -qq; then
+        echo ""
+        echo "ERROR: apt-get update failed."
+        echo "Fix disabled/expired apt repositories, or install these packages manually:"
+        echo "  sudo apt-get install -y python3 python3-venv python3-pip --no-install-recommends"
+        echo ""
+        echo "If Python, venv and pip are already available, re-run with:"
+        echo "  SKIP_APT=1 sudo -E bash install_linux.sh"
+        exit 1
+    fi
+    apt-get install -y python3 python3-venv python3-pip --no-install-recommends
+fi
 
 # Create install directory
 echo "Copying files to $INSTALL_DIR..."

@@ -53,6 +53,21 @@ class PhoneVerificationAuthTests(APITestCase):
         self.assertTrue(user.is_phone_verified)
         self.assertIsNotNone(user.phone_verified_at)
 
+    def test_verify_code_accepts_temporary_stub_code(self):
+        response = self.client.post(
+            reverse("verify_code"),
+            {"phone_number": "+996700123456", "code": "111111"},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn("access", response.data)
+        self.assertIn("refresh", response.data)
+
+        user = User.objects.get(phone_number="+996700123456")
+        self.assertTrue(user.is_phone_verified)
+        self.assertIsNotNone(user.phone_verified_at)
+
     def test_verify_code_rejects_invalid_phone_format(self):
         response = self.client.post(
             reverse("verify_code"),
