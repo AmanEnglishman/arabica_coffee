@@ -2,7 +2,8 @@
 set -e
 
 # Must be run as root
-if [ "$EUID" -ne 0 ]; then
+# Use a POSIX-safe check (some shells like /bin/sh don't set $EUID)
+if [ "$(id -u)" -ne 0 ]; then
     echo "ERROR: Run as root: sudo bash install_linux.sh"
     exit 1
 fi

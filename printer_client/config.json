@@ -1,7 +1,7 @@
 {
   "server_url": "wss://arabicacoffee.duckdns.org/ws/printer/",
   "token": "V6kiBBwJRCoeCrYQlemMZcO3fVIQuJe4y",
-  "printer_ip": "192.168.0.197",
+  "printer_ip": "192.168.0.1",
   "printer_port": 9100,
   "reconnect_interval": 5
 }
