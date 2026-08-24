@@ -53,6 +53,11 @@ class ProductOptionType(models.Model):
         on_delete=models.CASCADE,
         related_name="product_links",
     )
+    allow_multiple = models.BooleanField(
+        "Можно выбрать несколько",
+        default=False,
+        help_text="Если включено, пользователь может выбрать несколько значений этой опции",
+    )
 
     class Meta:
         unique_together = ("product", "option_type")

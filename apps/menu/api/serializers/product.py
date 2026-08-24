@@ -23,7 +23,7 @@ class ProductOptionTypeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ProductOptionType
-        fields = ("id", "option_type")
+        fields = ("id", "option_type", "allow_multiple")
 
 
 class ProductSerializer(serializers.ModelSerializer):
