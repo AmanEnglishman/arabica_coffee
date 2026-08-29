@@ -25,6 +25,8 @@ class OrderCreateSerializer(serializers.Serializer):
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
+    product = serializers.SerializerMethodField()
+
     class Meta:
         model = OrderItem
         fields = (
@@ -34,6 +36,22 @@ class OrderItemSerializer(serializers.ModelSerializer):
             "product_options",
             "final_price",
         )
+
+    def get_product(self, obj):
+        product = obj.product
+        image = None
+        if product.image:
+            request = self.context.get("request")
+            image = (
+                request.build_absolute_uri(product.image.url)
+                if request
+                else product.image.url
+            )
+        return {
+            "id": product.id,
+            "title": product.title,
+            "image": image,
+        }
 
 
 class OrderSerializer(serializers.ModelSerializer):

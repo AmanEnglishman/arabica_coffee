@@ -131,7 +131,7 @@ class CreateOrderView(APIView):
         except Exception:
             pass
 
-        serializer = OrderSerializer(order)
+        serializer = OrderSerializer(order, context={"request": request})
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
@@ -163,10 +163,14 @@ class OrderListView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        orders = Order.objects.filter(user=request.user).order_by("-created_at")
+        orders = (
+            Order.objects.filter(user=request.user)
+            .prefetch_related("items__product")
+            .order_by("-created_at")
+        )
         paginator = OrderPageNumberPagination()
         page = paginator.paginate_queryset(orders, request, view=self)
-        serializer = OrderSerializer(page, many=True)
+        serializer = OrderSerializer(page, many=True, context={"request": request})
         return paginator.get_paginated_response(serializer.data)
 
 
@@ -182,6 +186,10 @@ class OrderDetailView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk):
-        order = get_object_or_404(Order, id=pk, user=request.user)
-        serializer = OrderSerializer(order)
+        order = get_object_or_404(
+            Order.objects.prefetch_related("items__product"),
+            id=pk,
+            user=request.user,
+        )
+        serializer = OrderSerializer(order, context={"request": request})
         return Response(serializer.data)

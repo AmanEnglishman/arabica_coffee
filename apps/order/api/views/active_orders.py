@@ -49,12 +49,13 @@ class ActiveOrderListView(APIView):
         active_statuses = ["accepted", "ready", "on_the_way"]
         
         # Фильтруем заказы пользователя по активным статусам
-        orders = Order.objects.filter(
-            user=request.user,
-            status__in=active_statuses
-        ).order_by("-created_at")
-        
+        orders = (
+            Order.objects.filter(user=request.user, status__in=active_statuses)
+            .prefetch_related("items__product")
+            .order_by("-created_at")
+        )
+
         paginator = OrderPageNumberPagination()
         page = paginator.paginate_queryset(orders, request, view=self)
-        serializer = OrderSerializer(page, many=True)
+        serializer = OrderSerializer(page, many=True, context={"request": request})
         return paginator.get_paginated_response(serializer.data)

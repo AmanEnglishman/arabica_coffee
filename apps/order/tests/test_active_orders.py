@@ -2,8 +2,9 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
+from apps.menu.models import Category, Subcategory, Product
 from apps.order.models import Cafe
-from apps.order.models.code import Order
+from apps.order.models.code import Order, OrderItem
 from apps.users.models.user import User
 
 
@@ -18,6 +19,15 @@ class ActiveOrderListViewTests(APITestCase):
         # Создаем кафе
         self.cafe = Cafe.objects.create(name="Test Cafe", is_active=True)
 
+        category = Category.objects.create(title="Напитки")
+        subcategory = Subcategory.objects.create(title="Кофе", category=category)
+        self.product = Product.objects.create(
+            title="Капучино",
+            price=180,
+            description="Кофе с молоком",
+            subcategory=subcategory,
+        )
+
         # Создаем заказы с разными статусами
         self.order_accepted = Order.objects.create(
             user=self.user,
@@ -25,6 +35,13 @@ class ActiveOrderListViewTests(APITestCase):
             status="accepted",
             delivery_type="pickup",
             total_price=100,
+        )
+        OrderItem.objects.create(
+            order=self.order_accepted,
+            product=self.product,
+            quantity=2,
+            product_options={"options": [{"id": 1, "value": "300 мл"}], "comment": ""},
+            final_price=360,
         )
         self.order_ready = Order.objects.create(
             user=self.user,
@@ -157,3 +174,22 @@ class ActiveOrderListViewTests(APITestCase):
         ]
         for field in expected_fields:
             self.assertIn(field, order_data)
+
+    def test_active_orders_include_product_details_in_items(self):
+        """Тест: в позициях заказа возвращаются данные о продуктах"""
+        url = reverse("active-orders")
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        order_data = next(
+            order for order in response.data["results"]
+            if order["id"] == self.order_accepted.id
+        )
+        self.assertEqual(len(order_data["items"]), 1)
+
+        item = order_data["items"][0]
+        self.assertEqual(item["quantity"], 2)
+        self.assertEqual(item["product"]["id"], self.product.id)
+        self.assertEqual(item["product"]["title"], "Капучино")
+        self.assertIn("image", item["product"])
